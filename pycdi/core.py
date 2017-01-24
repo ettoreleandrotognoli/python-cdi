@@ -15,19 +15,12 @@ class Container(object):
         context_producers[produce_type] = producer
         types = inspect.getmro(produce_type)
         for t in types:
-            print(producer.__name__,t,context)
             context_producers[t] = producer
         self.producers[context] = context_producers
 
     def get_producer(self,produce_type,context=DEFAULT_CONTEXT):
-        types = inspect.getmro(produce_type)
         context_producers = self.producers.get(context,dict())
-        for t in types:
-            producer = context_producers.get(t,None)
-            if producer is None:
-                continue
-            return producer
-        return produce_type
+        return context_producers.get(produce_type,produce_type)
 
     def produce(self,produce_type,context=DEFAULT_CONTEXT):
         producer = self.get_producer(produce_type,context)
