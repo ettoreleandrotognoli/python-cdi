@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 import unittest
-from pycdi.core import DEFAULT_CONTAINER
+from pycdi.core import CDIContainer, DEFAULT_CONTAINER
 from pycdi import Producer, Inject
 from pycdi.shortcuts import new, call
 
@@ -113,6 +113,41 @@ class ClassInjectTest(unittest.TestCase):
         self.assertEqual(complex_class.another_string, ANOTHER_STRING)
         complex_class.a.do_something()
         complex_class.b.do_something()
+
+
+class SelfInjectTest(unittest.TestCase):
+    def test_simple_function(self):
+        @Inject(container=CDIContainer)
+        def function(container):
+            self.assertIsNotNone(container)
+            self.assertIsInstance(container, CDIContainer)
+
+        DEFAULT_CONTAINER.call(function)
+
+    def test_simple_class(self):
+        @Inject(container=CDIContainer)
+        class Class(object):
+            def __init__(self, container):
+                self.container = container
+
+        obj = DEFAULT_CONTAINER.produce(Class)
+        self.assertIsNotNone(obj.container)
+        self.assertIsInstance(obj.container, CDIContainer)
+        self.assertEqual(DEFAULT_CONTAINER, obj.container)
+
+    def test_subclass(self):
+        @Inject(container=CDIContainer)
+        class WithContainer(object):
+            def __init__(self, container):
+                self.cdi = container
+
+        class Subclass(WithContainer):
+            def __init__(self, *args, **kwargs):
+                super(Subclass, self).__init__(*args, **kwargs)
+
+        obj = DEFAULT_CONTAINER.produce(Subclass)
+        self.assertIsNotNone(obj.cdi)
+        self.assertIsInstance(obj.cdi, CDIContainer)
 
 
 class InjectArgsTest(unittest.TestCase):

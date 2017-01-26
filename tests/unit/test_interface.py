@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 import unittest
 
-from pycdi.core import CDIContainer
+from pycdi.core import CDIContainer, CDIDecorator
 
 
 class InterfaceCDITest(unittest.TestCase):
@@ -17,3 +17,7 @@ class InterfaceCDITest(unittest.TestCase):
             container.register_instance(None)
         with self.assertRaises(NotImplementedError):
             container.register_producer(None)
+
+    def test_decorator(self):
+        with self.assertRaises(NotImplementedError):
+            CDIDecorator()()
