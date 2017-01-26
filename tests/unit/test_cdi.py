@@ -13,7 +13,7 @@ def get_some_string():
     return SOME_STRING
 
 
-@Producer(str, context='another')
+@Producer(str, _context='another')
 def get_another():
     return ANOTHER_STRING
 
@@ -23,7 +23,7 @@ def function_with_injection(some_string):
     return some_string
 
 
-@Inject(some_string=str, context='another')
+@Inject(some_string=str, _context='another')
 def another_function_with_injection(some_string):
     return some_string
 
@@ -70,7 +70,7 @@ def get_subclass_a():
     return SubclassA()
 
 
-@Producer(SubclassB, context='another')
+@Producer(SubclassB, _context='another')
 def get_subclass_b():
     return SubclassB()
 
@@ -93,7 +93,7 @@ class CDITest(unittest.TestCase):
 
 
 @Inject(some_string=str, a=BaseClass)
-@Inject(another_string=str, b=BaseClass, context='another')
+@Inject(another_string=str, b=BaseClass, _context='another')
 class ComplexClass(object):
     def __init__(self, some_string, another_string, a, b):
         self.a = a
@@ -172,9 +172,9 @@ class InjectArgsTest(unittest.TestCase):
         DEFAULT_CONTAINER.register_instance(2, int, context='2')
         DEFAULT_CONTAINER.register_instance(3, int, context='3')
 
-        @Inject(int, context='3')
-        @Inject(int, context='2')
-        @Inject(int, context='1')
+        @Inject(int, _context='3')
+        @Inject(int, _context='2')
+        @Inject(int, _context='1')
         def sum_func(*args):
             for i, arg in zip(range(1, len(args) + 1), args):
                 self.assertEqual(i, arg)

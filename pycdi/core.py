@@ -71,7 +71,7 @@ class CDIDecorator(object):
 class Inject(CDIDecorator):
     def __init__(self, *args, **kwargs):
         super(Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
-        self.context = kwargs.pop('context', DEFAULT_CONTEXT)
+        self.context = kwargs.pop('_context', DEFAULT_CONTEXT)
         self.kwargs = kwargs
         self.args = args
 
@@ -86,10 +86,10 @@ class Inject(CDIDecorator):
 
 
 class Producer(CDIDecorator):
-    def __init__(self, produce_type=object, context=DEFAULT_CONTEXT, _container=DEFAULT_CONTAINER):
+    def __init__(self, produce_type=object, _context=DEFAULT_CONTEXT, _container=DEFAULT_CONTAINER):
         super(Producer, self).__init__(_container)
         self.produce_type = produce_type
-        self.context = context
+        self.context = _context
 
     def __call__(self, producer):
         self.container.register_producer(producer, self.produce_type, self.context)
