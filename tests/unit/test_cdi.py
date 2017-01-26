@@ -60,7 +60,7 @@ class SubclassA(BaseClass):
 
 
 class SubclassB(BaseClass):
-    def do_somthing(self):
+    def do_something(self):
         pass
 
 
@@ -110,3 +110,5 @@ class ClassInjectTest(unittest.TestCase):
         self.assertEqual(type(complex_class.b), SubclassB)
         self.assertEqual(complex_class.some_string, SOME_STRING)
         self.assertEqual(complex_class.another_string, ANOTHER_STRING)
+        complex_class.a.do_something()
+        complex_class.b.do_something()
