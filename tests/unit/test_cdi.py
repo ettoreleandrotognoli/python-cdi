@@ -129,8 +129,8 @@ class InjectArgsTest(unittest.TestCase):
             self.assertGreaterEqual(len(args), 3)
             return sum(args)
 
-        self.assertEquals(8, call(sum_func))
-        self.assertEquals(11, call(sum_func, 3))
+        self.assertEqual(8, call(sum_func))
+        self.assertEqual(11, call(sum_func, 3))
 
     def test_with_context_args(self):
         DEFAULT_CONTAINER.register_instance(1, int, context='1')
@@ -142,8 +142,8 @@ class InjectArgsTest(unittest.TestCase):
         @Inject(int, context='1')
         def sum_func(*args):
             for i, arg in zip(range(1, len(args) + 1), args):
-                self.assertEquals(i, arg)
+                self.assertEqual(i, arg)
             return sum(args)
 
-        self.assertEquals(6, call(sum_func))
-        self.assertEquals(10, call(sum_func, 4))
+        self.assertEqual(6, call(sum_func))
+        self.assertEqual(10, call(sum_func, 4))
