@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import unittest
+from pycdi.core import DEFAULT_CONTAINER
 from pycdi import Producer, Inject
 from pycdi.shortcuts import new, call
 
@@ -112,3 +113,37 @@ class ClassInjectTest(unittest.TestCase):
         self.assertEqual(complex_class.another_string, ANOTHER_STRING)
         complex_class.a.do_something()
         complex_class.b.do_something()
+
+
+class InjectArgsTest(unittest.TestCase):
+    def test_common_args(self):
+        DEFAULT_CONTAINER.register_instance(2, int)
+        DEFAULT_CONTAINER.register_instance(4.0, float)
+
+        @Inject(int)
+        @Inject(float, int)
+        def sum_func(*args):
+            self.assertIsInstance(args[0], float)
+            self.assertIsInstance(args[1], int)
+            self.assertIsInstance(args[1], int)
+            self.assertGreaterEqual(len(args), 3)
+            return sum(args)
+
+        self.assertEquals(8, call(sum_func))
+        self.assertEquals(11, call(sum_func, 3))
+
+    def test_with_context_args(self):
+        DEFAULT_CONTAINER.register_instance(1, int, context='1')
+        DEFAULT_CONTAINER.register_instance(2, int, context='2')
+        DEFAULT_CONTAINER.register_instance(3, int, context='3')
+
+        @Inject(int, context='3')
+        @Inject(int, context='2')
+        @Inject(int, context='1')
+        def sum_func(*args):
+            for i, arg in zip(range(1, len(args) + 1), args):
+                self.assertEquals(i, arg)
+            return sum(args)
+
+        self.assertEquals(6, call(sum_func))
+        self.assertEquals(10, call(sum_func, 4))

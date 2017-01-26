@@ -51,7 +51,7 @@ class PyCDIContainer(CDIContainer):
     def call(self, function, *args, **kwargs):
         di_args = getattr(function, '_inject_args', [])
         di_kwargs = getattr(function, '_inject_kwargs', {})
-        inject_args = list(map(lambda t, c: self.produce(t, c), di_args)) + list(args)
+        inject_args = list(map(lambda tc: self.produce(tc[0], tc[1]), di_args)) + list(args)
         inject_kwargs = dict(map(lambda kv: (kv[0], self.produce(*kv[1])), di_kwargs.items()))
         inject_kwargs.update(kwargs)
         return function(*inject_args, **inject_kwargs)
