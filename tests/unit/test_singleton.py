@@ -19,4 +19,4 @@ class SingletonTest(unittest.TestCase):
         obj1 = DEFAULT_CONTAINER.produce(SingletonClass)
         obj2 = DEFAULT_CONTAINER.produce(SingletonClass)
         self.assertEqual(obj1, obj2)
-        self.assertEquals(obj1.index, obj2.index)
+        self.assertEqual(obj1.index, obj2.index)
