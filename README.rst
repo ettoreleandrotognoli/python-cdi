@@ -31,7 +31,9 @@ Install latest pycdi
 Usage
 -----
 
-A simple example
+A simple_ example
+
+.. _simple: ./examples/simple.py
 
 .. include:: ./examples/simple.py
     :code: python
