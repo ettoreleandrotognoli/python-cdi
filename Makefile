@@ -6,8 +6,10 @@ test-all:
 	python3 -m unittest discover -s "tests/py3" -p "test_*.py"
 
 coverage: clean
+	coverage run -a -m unittest discover -s "tests/common" -p "test_*.py"
 	coverage run -a -m unittest discover -s "tests/py2/unit" -p "test_*.py"
 	coverage3 run -a -m unittest discover -s "tests/py3/unit" -p "test_*.py"
+	coverage3 run -a -m unittest discover -s "tests/common" -p "test_*.py"
 	coverage3 html --include="pycdi/*,examples/*"
 
 coverage-all: coverage
