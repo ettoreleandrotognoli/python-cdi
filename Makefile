@@ -7,11 +7,11 @@ test-all:
 
 coverage:
 	coverage run -m unittest discover -s "tests/unit" -p "test_*.py"
-	coverage html --include="pycdi/*"
+	coverage html --include="pycdi/*,examples/*"
 
-coverage-all:
+coverage-all: coverage
 	coverage run -m unittest discover -s "tests/" -p "test_*.py"
-	coverage html --include="pycdi/*"
+	coverage html --include="pycdi/*,examples/*"
 	python -mwebbrowser htmlcov/index.html &
 
 public:

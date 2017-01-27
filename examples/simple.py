@@ -24,5 +24,4 @@ def main(name, logger):
     logger.debug('I\'m finishing...')
 
 
-if __name__ == '__main__':
-    call(main)
+call(main)

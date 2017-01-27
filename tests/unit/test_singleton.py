@@ -59,10 +59,18 @@ class SingletonTest(unittest.TestCase):
 
         self.assertAlmostEqual(len(singletons), SINGLETON_LIMIT)
 
-    def test_function(self):
+    def test_function_with_type(self):
         @Singleton(produce_type=float)
         def get_singleton():
             return random()
 
         singletons = [DEFAULT_CONTAINER.produce(float) for x in range(SINGLETON_LIMIT)]
+        self.assertEqual(len(set(singletons)), 1)
+
+    def test_function_without_type(self):
+        @Singleton()
+        def get_singleton():
+            return object()
+
+        singletons = [DEFAULT_CONTAINER.produce(object) for x in range(SINGLETON_LIMIT)]
         self.assertEqual(len(set(singletons)), 1)
