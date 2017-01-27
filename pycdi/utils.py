@@ -37,6 +37,8 @@ class Singleton(CDIDecorator):
             produce_type = self.produce_type
         elif isinstance(decorated, type):
             produce_type = decorated
+        elif hasattr(decorated, '__annotations__'):
+            produce_type = decorated.__annotations__.get('return', object)
         else:
             produce_type = object
         self.container.register_producer(producer, produce_type)

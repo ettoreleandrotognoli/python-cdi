@@ -1,5 +1,8 @@
 # -*- encoding: utf-8 -*-
 import inspect
+import sys
+
+python_version = sys.version_info.major
 
 DEFAULT_CONTEXT = 'default'
 
@@ -67,9 +70,9 @@ class CDIDecorator(object):
         raise NotImplementedError()
 
 
-class Inject(CDIDecorator):
+class Py2Inject(CDIDecorator):
     def __init__(self, *args, **kwargs):
-        super(Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
+        super(Py2Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
         self.context = kwargs.pop('_context', DEFAULT_CONTEXT)
         self.kwargs = kwargs
         self.args = args
@@ -84,7 +87,35 @@ class Inject(CDIDecorator):
         return to_inject
 
 
-class Producer(CDIDecorator):
+class Py3Inject(CDIDecorator):
+    def __init__(self, *args, **kwargs):
+        super(Py3Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
+        self.context = kwargs.pop('_context', DEFAULT_CONTEXT)
+        self.args = args
+        self.kwargs = kwargs
+
+    def __call__(self, to_inject):
+        if isinstance(to_inject, type):
+            annotations = to_inject.__init__.__annotations__
+        else:
+            annotations = to_inject.__annotations__
+        parameters = filter(lambda item: item[0] is not 'return', annotations.items())
+        inject_args = getattr(to_inject, '_inject_args', [])
+        inject_args += [(t, self.context,) for t in self.args]
+        inject_kwargs = getattr(to_inject, '_inject_kwargs', {})
+        inject_kwargs.update(dict([(k, (t, self.kwargs.get(k, self.context))) for k, t in parameters]))
+        setattr(to_inject, '_inject_args', inject_args)
+        setattr(to_inject, '_inject_kwargs', inject_kwargs)
+        return to_inject
+
+
+if python_version == 3:
+    Inject = Py3Inject
+else:
+    Inject = Py2Inject
+
+
+class Py2Producer(CDIDecorator):
     def __init__(self, produce_type=object, _context=DEFAULT_CONTEXT, _container=DEFAULT_CONTAINER):
         super(Producer, self).__init__(_container)
         self.produce_type = produce_type
@@ -93,3 +124,23 @@ class Producer(CDIDecorator):
     def __call__(self, producer):
         self.container.register_producer(producer, self.produce_type, self.context)
         return producer
+
+
+class Py3Producer(CDIDecorator):
+    def __init__(self, produce_type=None, _context=DEFAULT_CONTEXT, _container=DEFAULT_CONTAINER):
+        super(Producer, self).__init__(_container)
+        self.produce_type = produce_type
+        self.context = _context
+
+    def __call__(self, producer):
+        if self.produce_type is None:
+            produce_type = producer.__annotations__.get('return', object)
+        else:
+            produce_type = self.produce_type
+        self.container.register_producer(producer, produce_type, self.context)
+
+
+if python_version == 3:
+    Producer = Py3Producer
+else:
+    Producer = Py2Producer
