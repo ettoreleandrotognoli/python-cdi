@@ -5,13 +5,12 @@ test-all:
 	python -m unittest discover -s "tests/py2" -p "test_*.py"
 	python3 -m unittest discover -s "tests/py3" -p "test_*.py"
 
-coverage:
-	coverage run -m unittest discover -s "tests/unit" -p "test_*.py"
-	coverage html --include="pycdi/*,examples/*"
+coverage: clean
+	coverage run -a -m unittest discover -s "tests/py2/unit" -p "test_*.py"
+	coverage3 run -a -m unittest discover -s "tests/py3/unit" -p "test_*.py"
+	coverage3 html --include="pycdi/*,examples/*"
 
 coverage-all: coverage
-	coverage run -m unittest discover -s "tests/" -p "test_*.py"
-	coverage html --include="pycdi/*,examples/*"
 	python -mwebbrowser htmlcov/index.html &
 
 public:
