@@ -3,6 +3,7 @@ import unittest
 
 from pycdi.core import DEFAULT_CONTAINER
 from pycdi.utils import Singleton, SequentialStrategy, random_strategy
+from random import random
 
 SINGLETON_LIMIT = 10
 
@@ -57,3 +58,11 @@ class SingletonTest(unittest.TestCase):
             self.assertLessEqual(len(singletons), SINGLETON_LIMIT)
 
         self.assertAlmostEqual(len(singletons), SINGLETON_LIMIT)
+
+    def test_function(self):
+        @Singleton(produce_type=float)
+        def get_singleton():
+            return random()
+
+        singletons = [DEFAULT_CONTAINER.produce(float) for x in range(SINGLETON_LIMIT)]
+        self.assertEqual(len(set(singletons)), 1)

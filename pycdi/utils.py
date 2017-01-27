@@ -19,18 +19,25 @@ sequential_strategy = SequentialStrategy
 
 
 class Singleton(CDIDecorator):
-    def __init__(self, limit=1, strategy=SequentialStrategy, container=DEFAULT_CONTAINER):
+    def __init__(self, limit=1, produce_type=None, strategy=SequentialStrategy, container=DEFAULT_CONTAINER):
         super(Singleton, self).__init__(container)
         self.limit = limit
         self.strategy = strategy() if isinstance(strategy, type) else strategy
+        self.produce_type = produce_type
 
-    def __call__(self, clazz):
+    def __call__(self, decorated):
         def producer():
-            instance = getattr(clazz, '_instance', None)
+            instance = getattr(decorated, '_instance', None)
             if instance is None:
-                instance = [self.container.call(clazz) for i in range(self.limit)]
-                setattr(clazz, '_instance', instance)
+                instance = [self.container.call(decorated) for i in range(self.limit)]
+                setattr(decorated, '_instance', instance)
             return self.strategy(instance)
 
-        self.container.register_producer(producer, clazz)
-        return clazz
+        if self.produce_type is not None:
+            produce_type = self.produce_type
+        elif isinstance(decorated, type):
+            produce_type = decorated
+        else:
+            produce_type = object
+        self.container.register_producer(producer, produce_type)
+        return decorated
