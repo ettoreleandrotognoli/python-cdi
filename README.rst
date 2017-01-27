@@ -16,9 +16,28 @@ A simple Python CDI ( Code Dependency Injection) Library.
 Install
 -------
 
-Install pycdi
+Install stable pycdi
 
 .. code-block:: shell
 
     pip install pycdi
+
+Install latest pycdi
+
+.. code-block:: shell
+
+    pip install git+https://github.com/ettoreleandrotognoli/python-cdi
+    
+Usage
+-----
+
+A simple example
+
+.. include:: ./examples/simple.py
+    :code: python
+
+
+
+
+
 

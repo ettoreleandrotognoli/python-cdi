@@ -101,6 +101,11 @@ class ComplexClass(object):
         self.some_string = some_string
         self.another_string = another_string
 
+    @Inject(test=unittest.TestCase)
+    def method_with_injection(self, test):
+        test.assertEqual(self.some_string, SOME_STRING)
+        test.assertEqual(self.another_string, ANOTHER_STRING)
+
 
 class ClassInjectTest(unittest.TestCase):
     def test_init_complex_class(self):
@@ -113,6 +118,11 @@ class ClassInjectTest(unittest.TestCase):
         self.assertEqual(complex_class.another_string, ANOTHER_STRING)
         complex_class.a.do_something()
         complex_class.b.do_something()
+
+    def test_method_with_injection(self):
+        DEFAULT_CONTAINER.register_instance(self)
+        complex_class = new(ComplexClass)
+        call(complex_class.method_with_injection)
 
 
 class SelfInjectTest(unittest.TestCase):
