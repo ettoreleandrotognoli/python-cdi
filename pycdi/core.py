@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import inspect
+from six import string_types
 import collections
 import sys
 
@@ -62,6 +63,8 @@ class PyCDIContainer(CDIContainer):
         for instance in args:
             container.register_instance(instance)
         for context, instances in kwargs.items():
+            if isinstance(instances, string_types):
+                instances = [instances]
             if not isinstance(instances, collections.Iterable):
                 instances = [instances]
             for instance in instances:
