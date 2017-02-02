@@ -29,9 +29,9 @@ class CDIContainer(object):
 
 
 class PyCDIContainer(CDIContainer):
-    def __init__(self, producers=dict(), parent=None):
-        self.parent = None
-        self.producers = producers
+    def __init__(self, producers=None, parent=None):
+        self.parent = parent
+        self.producers = dict() if producers is None else producers
         self.register_instance(self)
 
     def register_instance(self, instance, produce_type=None, context=DEFAULT_CONTEXT):

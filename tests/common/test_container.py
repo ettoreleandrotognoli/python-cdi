@@ -10,6 +10,7 @@ class ContainerTest(unittest.TestCase):
         container.register_instance(1)
         self.assertEqual(container.produce(int), 1)
         sub_container = container.sub_container(2)
+        self.assertEqual(container.produce(int), 1)
         self.assertEqual(sub_container.produce(int), 2)
 
     def test_complex_sub_container(self):
@@ -20,8 +21,12 @@ class ContainerTest(unittest.TestCase):
         self.assertEqual(container.produce(int), 0)
         self.assertEqual(container.produce(int, context='one'), 1)
         self.assertEqual(container.produce(int, context='two'), 2)
-        sub_container = container.sub_container(one=[10, 1.0], two=2)
-        self.assertEqual(sub_container.produce(int), 0)
+        sub_container = container.sub_container(1, one=[10, 1.0], three=3)
+        self.assertEqual(container.produce(int), 0)
+        self.assertEqual(container.produce(int, context='one'), 1)
+        self.assertEqual(container.produce(int, context='two'), 2)
+        self.assertEqual(sub_container.produce(int), 1)
         self.assertEqual(sub_container.produce(int, context='one'), 10)
         self.assertEqual(sub_container.produce(float, context='one'), 1.0)
         self.assertEqual(sub_container.produce(int, context='two'), 2)
+        self.assertEqual(sub_container.produce(int, context='three'), 3)
