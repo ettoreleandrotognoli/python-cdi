@@ -3,6 +3,7 @@ sudo: false
 python:
   - 2.7
   - 3.4
+  - pypy
 install:
   - pip install -U pip setuptools codecov
   - python setup.py install
