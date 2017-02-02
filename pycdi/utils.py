@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
-from .core import CDIDecorator, DEFAULT_CONTAINER
 import random
+
+from .core import CDIDecorator, DEFAULT_CONTAINER
 
 random_strategy = random.choice
 
@@ -43,3 +44,11 @@ class Singleton(CDIDecorator):
             produce_type = object
         self.container.register_producer(producer, produce_type)
         return decorated
+
+
+class Provide(CDIDecorator):
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            return self.container.call(func, *args, **kwargs)
+
+        return wrapper
