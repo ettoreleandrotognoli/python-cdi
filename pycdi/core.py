@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import inspect
+import collections
 import sys
 
 python_version = sys.version_info.major
@@ -17,6 +18,9 @@ class CDIContainer(object):
     def get_producer(self, produce_type=object, context=DEFAULT_CONTEXT):
         raise NotImplementedError()
 
+    def sub_container(self, *args, **kwargs):
+        raise NotImplementedError()
+
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
         raise NotImplementedError()
 
@@ -25,8 +29,9 @@ class CDIContainer(object):
 
 
 class PyCDIContainer(CDIContainer):
-    def __init__(self, *args, **kwargs):
-        self.producers = dict()
+    def __init__(self, producers=dict(), parent=None):
+        self.parent = None
+        self.producers = producers
         self.register_instance(self)
 
     def register_instance(self, instance, produce_type=None, context=DEFAULT_CONTEXT):
@@ -42,9 +47,26 @@ class PyCDIContainer(CDIContainer):
             context_producers[t] = producer
         self.producers[context] = context_producers
 
-    def get_producer(self, produce_type, context=DEFAULT_CONTEXT):
+    def get_producer(self, produce_type=object, context=DEFAULT_CONTEXT):
         context_producers = self.producers.get(context, dict())
-        return context_producers.get(produce_type, produce_type)
+        producer = context_producers.get(produce_type, False)
+        if producer:
+            return producer
+        if self.parent is not None:
+            return self.parent.get_producer(produce_type, context=context)
+        else:
+            return produce_type
+
+    def sub_container(self, *args, **kwargs):
+        container = PyCDIContainer(parent=self)
+        for instance in args:
+            container.register_instance(instance)
+        for context, instances in kwargs.items():
+            if not isinstance(instances, collections.Iterable):
+                instances = [instances]
+            for instance in instances:
+                container.register_instance(instance, context=context)
+        return container
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
         producer = self.get_producer(produce_type, context)
