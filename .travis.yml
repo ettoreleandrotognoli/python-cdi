@@ -3,9 +3,11 @@ sudo: false
 python:
   - 2.7
   - 3.4
+  - pypy
+  - pypy3
 install:
-  - pip install -U pip setuptools codecov
-  - python setup.py install
+  - pip install --user -U pip setuptools codecov
+  - python setup.py -q install
 script: make coverage
 after_success:
   - codecov
