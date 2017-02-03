@@ -13,12 +13,12 @@ def read(file_name):
 
 
 requirements = []
-str_version = ".".join(map(str, __version__))
+str_version = '.'.join(map(str, __version__))
 
 setup(
-    name="pycdi",
+    name='pycdi',
     version=str_version,
-    description="Python Code Dependency Injection",
+    description='Python Code Dependency Injection',
     long_description=read('README.rst'),
     url='https://github.com/ettoreleandrotognoli/python-cdi',
     download_url='https://github.com/ettoreleandrotognoli/python-cdi/tree/%s/' % str_version,
@@ -29,9 +29,15 @@ setup(
     include_package_data=True,
     keywords=['cdi','di','code dependency injection','dependency injection'],
     classifiers=[
-        'Operating System :: OS Independent',
+        'Operating System :: OS Independent',        
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+        'Development Status :: 2 - Pre-Alpha',
+        'License :: OSI Approved :: BSD License',
     ],
-    # install_requires=requirements,
+    install_requires=[
+        'six',
+    ],
     # tests_require=[],
 )

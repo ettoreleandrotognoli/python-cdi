@@ -11,6 +11,9 @@ PyCDI
 .. image:: https://badge.fury.io/py/pycdi.svg
     :target: https://badge.fury.io/py/pycdi
 
+.. image:: https://img.shields.io/pypi/dm/pycdi.svg
+    :target: https://pypi.python.org/pypi/pycdi#downloads
+
 A simple Python CDI ( Code Dependency Injection) Library.
 
 The decorators of Python2 define the types and the contexts of the injections.
