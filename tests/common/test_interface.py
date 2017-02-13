@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 import unittest
 
+from pycdi import Inject
 from pycdi.core import CDIContainer, CDIDecorator
+from pycdi.shortcuts import call
 
 
 class InterfaceCDITest(unittest.TestCase):
@@ -23,3 +25,35 @@ class InterfaceCDITest(unittest.TestCase):
     def test_decorator(self):
         with self.assertRaises(NotImplementedError):
             CDIDecorator()()
+
+
+class InjectInterfaceTest(unittest.TestCase):
+    def test_error(self):
+        with self.assertRaises(Exception):
+            @Inject(param=1)
+            def method(*args, **kwargs):
+                pass
+
+    def test_with_tuple(self):
+        @Inject((object, 'default'), param=(object, 'default'))
+        def method(*args, **kwargs):
+            self.assertIsNotNone(args[0])
+            self.assertIsNotNone(kwargs.get('param'))
+
+        call(method)
+
+    def test_with_str(self):
+        @Inject('default', param='default')
+        def method(*args, **kwargs):
+            self.assertIsNotNone(args[0])
+            self.assertIsNotNone(kwargs.get('param'))
+
+        call(method)
+
+    def test_with_type(self):
+        @Inject(object, param=object)
+        def method(*args, **kwargs):
+            self.assertIsNotNone(args[0])
+            self.assertIsNotNone(kwargs.get('param'))
+
+        call(method)
