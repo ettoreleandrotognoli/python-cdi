@@ -95,77 +95,51 @@ class CDIDecorator(object):
         raise NotImplementedError()
 
 
-class Py2Inject(CDIDecorator):
+def prepare_injector_argument(arg, default_type, default_context):
+    if isinstance(arg, type):
+        return arg, default_context
+    elif isinstance(arg, string_types):
+        return default_type, arg
+    elif isinstance(arg, tuple):
+        return arg
+    else:
+        raise Exception()
+
+
+class Inject(CDIDecorator):
     def __init__(self, *args, **kwargs):
-        super(Py2Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
-        self.context = kwargs.pop('_context', DEFAULT_CONTEXT)
-        self.kwargs = kwargs
-        self.args = args
-
-    def __call__(self, to_inject):
-        inject_args = getattr(to_inject, '_inject_args', [])
-        inject_args += [(t, self.context,) for t in self.args]
-        inject_kwargs = getattr(to_inject, '_inject_kwargs', {})
-        inject_kwargs.update(dict([(k, (t, self.context)) for k, t in self.kwargs.items()]))
-        setattr(to_inject, '_inject_args', inject_args)
-        setattr(to_inject, '_inject_kwargs', inject_kwargs)
-        return to_inject
-
-
-class Py3Inject(CDIDecorator):
-    def __init__(self, *args, **kwargs):
-        super(Py3Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
+        super(Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
         self.context = kwargs.pop('_context', DEFAULT_CONTEXT)
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, to_inject):
         if isinstance(to_inject, type):
-            annotations = to_inject.__init__.__annotations__
+            annotations = getattr(to_inject.__init__, '__annotations__', {})
         else:
-            annotations = to_inject.__annotations__
-        parameters = filter(lambda item: item[0] is not 'return', annotations.items())
+            annotations = getattr(to_inject, '__annotations__', {})
+        parameters = dict(filter(lambda item: item[0] is not 'return', annotations.items()))
         inject_args = getattr(to_inject, '_inject_args', [])
-        inject_args += [(t, self.context,) for t in self.args]
+        inject_args += [prepare_injector_argument(t, object, self.context, ) for t in self.args]
         inject_kwargs = getattr(to_inject, '_inject_kwargs', {})
-        inject_kwargs.update(dict([(k, (t, self.kwargs.get(k, self.context))) for k, t in parameters]))
+        keys = set(parameters.keys()) | set(self.kwargs.keys())
+        inject_kwargs.update(
+            dict([(k,
+                   prepare_injector_argument(self.kwargs.get(k, self.context), parameters.get(k, object), self.context))
+                  for k in keys])
+        )
         setattr(to_inject, '_inject_args', inject_args)
         setattr(to_inject, '_inject_kwargs', inject_kwargs)
         return to_inject
 
 
-if python_version == 3:
-    Inject = Py3Inject
-else:
-    Inject = Py2Inject
-
-
-class Py2Producer(CDIDecorator):
-    def __init__(self, produce_type=object, _context=DEFAULT_CONTEXT, _container=DEFAULT_CONTAINER):
-        super(Producer, self).__init__(_container)
-        self.produce_type = produce_type
-        self.context = _context
-
-    def __call__(self, producer):
-        self.container.register_producer(producer, self.produce_type, self.context)
-        return producer
-
-
-class Py3Producer(CDIDecorator):
+class Producer(CDIDecorator):
     def __init__(self, produce_type=None, _context=DEFAULT_CONTEXT, _container=DEFAULT_CONTAINER):
         super(Producer, self).__init__(_container)
         self.produce_type = produce_type
         self.context = _context
 
     def __call__(self, producer):
-        if self.produce_type is None:
-            produce_type = producer.__annotations__.get('return', object)
-        else:
-            produce_type = self.produce_type
+        annotations = getattr(producer, '__annotations__', {})
+        produce_type = annotations.get('return', self.produce_type or object)
         self.container.register_producer(producer, produce_type, self.context)
-
-
-if python_version == 3:
-    Producer = Py3Producer
-else:
-    Producer = Py2Producer
