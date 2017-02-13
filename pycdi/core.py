@@ -1,12 +1,13 @@
 # -*- encoding: utf-8 -*-
-import inspect
-from six import string_types
 import collections
-import sys
+import inspect
 
-python_version = sys.version_info.major
+from six import string_types
 
 DEFAULT_CONTEXT = 'default'
+
+INJECT_ARGS = '_inject_args'
+INJECT_KWARGS = '_inject_kwargs'
 
 
 class CDIContainer(object):
@@ -76,8 +77,8 @@ class PyCDIContainer(CDIContainer):
         return self.call(producer)
 
     def call(self, function, *args, **kwargs):
-        di_args = getattr(function, '_inject_args', [])
-        di_kwargs = getattr(function, '_inject_kwargs', {})
+        di_args = getattr(function, INJECT_ARGS, [])
+        di_kwargs = getattr(function, INJECT_KWARGS, {})
         inject_args = list(map(lambda tc: self.produce(tc[0], tc[1]), di_args)) + list(args)
         inject_kwargs = dict(map(lambda kv: (kv[0], self.produce(*kv[1])), di_kwargs.items()))
         inject_kwargs.update(kwargs)
@@ -119,17 +120,17 @@ class Inject(CDIDecorator):
         else:
             annotations = getattr(to_inject, '__annotations__', {})
         parameters = dict(filter(lambda item: item[0] is not 'return', annotations.items()))
-        inject_args = getattr(to_inject, '_inject_args', [])
+        inject_args = getattr(to_inject, INJECT_ARGS, [])
         inject_args += [prepare_injector_argument(t, object, self.context, ) for t in self.args]
-        inject_kwargs = getattr(to_inject, '_inject_kwargs', {})
+        inject_kwargs = getattr(to_inject, INJECT_KWARGS, {})
         keys = set(parameters.keys()) | set(self.kwargs.keys())
         inject_kwargs.update(
             dict([(k,
                    prepare_injector_argument(self.kwargs.get(k, self.context), parameters.get(k, object), self.context))
                   for k in keys])
         )
-        setattr(to_inject, '_inject_args', inject_args)
-        setattr(to_inject, '_inject_kwargs', inject_kwargs)
+        setattr(to_inject, INJECT_ARGS, inject_args)
+        setattr(to_inject, INJECT_KWARGS, inject_kwargs)
         return to_inject
 
 
