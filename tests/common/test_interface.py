@@ -29,10 +29,13 @@ class InterfaceCDITest(unittest.TestCase):
 
 class InjectInterfaceTest(unittest.TestCase):
     def test_error(self):
+        def method(*args, **kwargs):
+            pass
+
+        method()
+
         with self.assertRaises(Exception):
-            @Inject(param=1)
-            def method(*args, **kwargs):
-                pass
+            Inject(param=1)(method)
 
     def test_with_tuple(self):
         @Inject((object, 'default'), param=(object, 'default'))
