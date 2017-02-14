@@ -16,8 +16,7 @@ def get_logger(app_name):
     return logging.getLogger(app_name)
 
 
-@Inject(logger=Logger)
-@Inject(name=str, _context='app_name')
+@Inject(name=(str, 'app_name'), logger=Logger)
 def main(name, logger):
     logger.info('I\'m starting...')
     print('Hello World!!!\nI\'m a example of %s' % name)

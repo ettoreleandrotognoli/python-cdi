@@ -16,10 +16,6 @@ PyCDI
 
 A simple Python CDI ( Code Dependency Injection) Library.
 
-The decorators of Python2 define the types and the contexts of the injections.
-In the Python3 the types are defined with type-hints ( __annotations__ ) and the decorators defines the contexts.
-The contexts are like the scopes (@Scope) of Java.
-
 Install
 -------
 
@@ -38,12 +34,10 @@ Install latest pycdi
 Usage
 -----
 
+Python2 & Python3
+~~~~~~~~~~~~~~~~~
 
-
-Python 2
-~~~~~~~~
-
-You can see more examples in the examples folder( examples/py2/ ).
+You can see more examples in the examples folder (examples/common).
 
 .. code-block:: python
 
@@ -65,8 +59,7 @@ You can see more examples in the examples folder( examples/py2/ ).
         return logging.getLogger(app_name)
     
     
-    @Inject(logger=Logger)
-    @Inject(name=str, _context='app_name')
+    @Inject(name=(str, 'app_name'), logger=Logger)
     def main(name, logger):
         logger.info('I\'m starting...')
         print('Hello World!!!\nI\'m a example of %s' % name)
@@ -79,7 +72,10 @@ You can see more examples in the examples folder( examples/py2/ ).
 Python 3
 ~~~~~~~~
 
+With Python 3 is possible define the types of injections with the type hints.
+
 You can see more examples in the examples folder( examples/py3/ ).
+
 
 .. code-block:: python
 
@@ -109,8 +105,4 @@ You can see more examples in the examples folder( examples/py3/ ).
     
     
     call(main)
-
-
-
-
 
