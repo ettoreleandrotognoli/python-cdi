@@ -144,3 +144,4 @@ class Producer(CDIDecorator):
         annotations = getattr(producer, '__annotations__', {})
         produce_type = annotations.get('return', self.produce_type or object)
         self.container.register_producer(producer, produce_type, self.context)
+        return producer
