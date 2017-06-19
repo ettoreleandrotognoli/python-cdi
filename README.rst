@@ -16,6 +16,8 @@ PyCDI
 
 A simple Python CDI ( Code Dependency Injection) Library.
 
+See the `code of conduct <CODE_OF_CONDUCT.md>`_.
+
 Install
 -------
 
