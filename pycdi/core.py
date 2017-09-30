@@ -111,6 +111,7 @@ class Inject(CDIDecorator):
     def __init__(self, *args, **kwargs):
         super(Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
         self.context = kwargs.pop('_context', DEFAULT_CONTEXT)
+        self.name_as_context = kwargs.pop('_name_as_context', False)
         self.args = args
         self.kwargs = kwargs
 
@@ -124,11 +125,13 @@ class Inject(CDIDecorator):
         inject_args += [prepare_injector_argument(t, object, self.context, ) for t in self.args]
         inject_kwargs = getattr(to_inject, INJECT_KWARGS, {})
         keys = set(parameters.keys()) | set(self.kwargs.keys())
-        inject_kwargs.update(
-            dict([(k,
-                   prepare_injector_argument(self.kwargs.get(k, self.context), parameters.get(k, object), self.context))
-                  for k in keys])
-        )
+        inject_kwargs.update(dict(
+            [(k, prepare_injector_argument(
+                self.kwargs.get(k, k if self.name_as_context else self.context),
+                parameters.get(k, object),
+                k if self.name_as_context else self.context)
+              ) for k in keys]
+        ))
         setattr(to_inject, INJECT_ARGS, inject_args)
         setattr(to_inject, INJECT_KWARGS, inject_kwargs)
         return to_inject
