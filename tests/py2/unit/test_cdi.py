@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 import unittest
-from pycdi.core import CDIContainer, DEFAULT_CONTAINER
+from pycdi.core import CDIContainer, DEFAULT_CONTAINER, DEFAULT_CONTEXT
 from pycdi import Producer, Inject
 from pycdi.shortcuts import new, call
 

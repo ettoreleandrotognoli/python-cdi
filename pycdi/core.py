@@ -30,6 +30,29 @@ class CDIContainer(object):
         raise NotImplementedError()
 
 
+def resolve_forward_reference(reference_name, scope):
+    return eval(reference_name, scope.__globals__, scope.__globals__)
+
+
+def get_di_args(obj):
+    di_args = getattr(obj, INJECT_ARGS, [])
+    forward_references = [(index, value) for index, value in enumerate(di_args) if isinstance(value[0], string_types)]
+    for index, value in forward_references:
+        di_args[index] = (resolve_forward_reference(value[0], obj), value[1],)
+    return di_args
+
+
+def get_di_kwargs(obj):
+    di_kwargs = getattr(obj, INJECT_KWARGS, {})
+    forward_references = dict([
+        (k, (resolve_forward_reference(v[0], obj), v[1]))
+        for k, v in di_kwargs.items()
+        if isinstance(v[0], string_types)
+    ])
+    di_kwargs.update(forward_references)
+    return di_kwargs
+
+
 class PyCDIContainer(CDIContainer):
     def __init__(self, producers=None, parent=None):
         self.parent = parent
@@ -77,8 +100,8 @@ class PyCDIContainer(CDIContainer):
         return self.call(producer)
 
     def call(self, function, *args, **kwargs):
-        di_args = getattr(function, INJECT_ARGS, [])
-        di_kwargs = getattr(function, INJECT_KWARGS, {})
+        di_args = get_di_args(function)
+        di_kwargs = get_di_kwargs(function)
         inject_args = list(map(lambda tc: self.produce(tc[0], tc[1]), di_args)) + list(args)
         inject_kwargs = dict(map(lambda kv: (kv[0], self.produce(*kv[1])), di_kwargs.items()))
         inject_kwargs.update(kwargs)
