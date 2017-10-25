@@ -1,11 +1,10 @@
 # -*- encoding: utf-8 -*-
 __author__ = 'ettore'
+__version__ = (0, 0, 5)
 
 import os
 
 from setuptools import setup, find_packages
-
-from pycdi import __version__
 
 
 def read(file_name):
@@ -25,11 +24,11 @@ setup(
     license='BSD',
     author=u'Éttore Leandro Tognoli',
     author_email='ettore.leandro.tognoli@gmail.com',
-    packages=find_packages(exclude=['tests','examples']),
+    packages=find_packages(exclude=['tests', 'examples']),
     include_package_data=True,
-    keywords=['cdi','di','code dependency injection','dependency injection'],
+    keywords=['cdi', 'di', 'code dependency injection', 'dependency injection'],
     classifiers=[
-        'Operating System :: OS Independent',        
+        'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
