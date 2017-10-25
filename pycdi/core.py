@@ -111,6 +111,7 @@ class Inject(CDIDecorator):
     def __init__(self, *args, **kwargs):
         super(Inject, self).__init__(kwargs.pop('_container', DEFAULT_CONTAINER))
         self.context = kwargs.pop('_context', DEFAULT_CONTEXT)
+        self.override = kwargs.pop('_override', False)
         self.name_as_context = kwargs.pop('_name_as_context', False)
         self.args = args
         self.kwargs = kwargs
@@ -121,9 +122,9 @@ class Inject(CDIDecorator):
         else:
             annotations = getattr(to_inject, '__annotations__', {})
         parameters = dict(filter(lambda item: item[0] is not 'return', annotations.items()))
-        inject_args = getattr(to_inject, INJECT_ARGS, [])
+        inject_args = [] if self.override else list(getattr(to_inject, INJECT_ARGS, []))
         inject_args += [prepare_injector_argument(t, object, self.context, ) for t in self.args]
-        inject_kwargs = getattr(to_inject, INJECT_KWARGS, {})
+        inject_kwargs = {} if self.override else dict(getattr(to_inject, INJECT_KWARGS, {}))
         keys = set(parameters.keys()) | set(self.kwargs.keys())
         inject_kwargs.update(dict(
             [(k, prepare_injector_argument(
