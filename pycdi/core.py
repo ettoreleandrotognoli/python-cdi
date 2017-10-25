@@ -36,10 +36,10 @@ def resolve_forward_reference(reference_name, scope):
 
 def get_di_args(obj):
     di_args = getattr(obj, INJECT_ARGS, [])
-    return map(
-        lambda v: (resolve_forward_reference(v[0], obj) if isinstance(v[0], string_types) else v[0], v[1]),
-        di_args
-    )
+    forward_references = [(index, value) for index, value in enumerate(di_args) if isinstance(value[0], string_types)]
+    for index, value in forward_references:
+        di_args[index] = (resolve_forward_reference(value[0], obj), value[1],)
+    return di_args
 
 
 def get_di_kwargs(obj):
