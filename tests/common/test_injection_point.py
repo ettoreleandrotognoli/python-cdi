@@ -14,13 +14,13 @@ class InjectionPointTest(unittest.TestCase):
         container = PyCDIContainer()
 
         @Producer(produce_type=float, _container=container)
-        @Inject(injection_point=InjectionPoint)
-        def float_producer(injection_point):
-            self.assertEqual(injection_point.type, float)
-            self.assertIsNotNone(injection_point.member)
-            self.assertIsNotNone(injection_point.name)
-            self.assertIsNotNone(injection_point.context)
-            self.float_injection_point = injection_point
+        @Inject(ip=InjectionPoint)
+        def float_producer(ip):
+            self.assertEqual(ip.type, float)
+            self.assertIsNotNone(ip.member)
+            self.assertIsNotNone(ip.name)
+            self.assertIsNotNone(ip.context)
+            self.float_injection_point = ip
             return random()
 
         @Producer(produce_type=str, _container=container)
