@@ -10,6 +10,14 @@ INJECT_ARGS = '_inject_args'
 INJECT_KWARGS = '_inject_kwargs'
 
 
+class InjectionPoint(object):
+    def __init__(self, member=None, name=None, type=object, context=DEFAULT_CONTEXT):
+        self.context = context
+        self.name = name
+        self.member = member
+        self.type = type
+
+
 class CDIContainer(object):
     def register_instance(self, instance, product_type=None, context=DEFAULT_CONTEXT):
         raise NotImplementedError()
@@ -21,6 +29,9 @@ class CDIContainer(object):
         raise NotImplementedError()
 
     def sub_container(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def resolve(self, injection_point):
         raise NotImplementedError()
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
@@ -95,16 +106,31 @@ class PyCDIContainer(CDIContainer):
                 container.register_instance(instance, context=context)
         return container
 
+    def resolve(self, injection_point, **kwargs):
+        if kwargs and injection_point.name in kwargs:
+            return kwargs[injection_point.name]
+        producer = self.get_producer(injection_point.type, injection_point.context)
+        return self.call(producer, injection_point=injection_point)
+
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
         producer = self.get_producer(produce_type, context)
         return self.call(producer)
 
+    def _resolve_di_args(self, member, di_args, args):
+        injection_points = map(lambda kv: InjectionPoint(member, kv[0], *kv[1]), zip(range(len(di_args)), di_args))
+        inject_args = list(map(lambda ij: self.resolve(ij), injection_points)) + list(args)
+        return inject_args
+
+    def _resolve_di_kwargs(self, member, di_kwargs, kwargs):
+        injection_points = map(lambda kv: InjectionPoint(member, kv[0], *kv[1]), di_kwargs.items())
+        inject_kwargs = dict(map(lambda ij: (ij.name, self.resolve(ij, **kwargs)), injection_points))
+        return inject_kwargs
+
     def call(self, function, *args, **kwargs):
         di_args = get_di_args(function)
         di_kwargs = get_di_kwargs(function)
-        inject_args = list(map(lambda tc: self.produce(tc[0], tc[1]), di_args)) + list(args)
-        inject_kwargs = dict(map(lambda kv: (kv[0], self.produce(*kv[1])), di_kwargs.items()))
-        inject_kwargs.update(kwargs)
+        inject_args = self._resolve_di_args(function, di_args, args)
+        inject_kwargs = self._resolve_di_kwargs(function, di_kwargs, kwargs)
         return function(*inject_args, **inject_kwargs)
 
 
