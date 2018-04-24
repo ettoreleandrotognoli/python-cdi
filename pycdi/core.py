@@ -11,21 +11,31 @@ INJECT_KWARGS = '_inject_kwargs'
 
 
 class InjectionPoint(object):
-    def __init__(self, member=None, name=None, type=object, context=DEFAULT_CONTEXT):
+    @classmethod
+    def make(cls, member=None, name=None, type=object, context=DEFAULT_CONTEXT):
+        multiple = hasattr(type, '__iter__')
+        type = first(type) if multiple else type
+        return cls(member, name, type, context, multiple)
+
+    def __init__(self, member=None, name=None, type=object, context=DEFAULT_CONTEXT, multiple=False):
         self.context = context
         self.name = name
         self.member = member
         self.type = type
+        self.multiple = multiple
 
 
 class CDIContainer(object):
-    def register_instance(self, instance, product_type=None, context=DEFAULT_CONTEXT):
+    def register_instance(self, instance, product_type=None, context=DEFAULT_CONTEXT, priority=None):
         raise NotImplementedError()
 
-    def register_producer(self, producer, produce_type=object, context=DEFAULT_CONTEXT):
+    def register_producer(self, producer, produce_type=object, context=DEFAULT_CONTEXT, priority=None):
         raise NotImplementedError()
 
     def get_producer(self, produce_type=object, context=DEFAULT_CONTEXT):
+        raise NotImplementedError()
+
+    def get_producers(self, produce_type=object, context=DEFAULT_CONTEXT):
         raise NotImplementedError()
 
     def sub_container(self, *args, **kwargs):
@@ -64,34 +74,56 @@ def get_di_kwargs(obj):
     return di_kwargs
 
 
+def first(it):
+    return it[0]
+
+
+def last(it):
+    return it[-1]
+
+
 class PyCDIContainer(CDIContainer):
     def __init__(self, producers=None, parent=None):
         self.parent = parent
         self.producers = dict() if producers is None else producers
         self.register_instance(self)
 
-    def register_instance(self, instance, produce_type=None, context=DEFAULT_CONTEXT):
+    def register_instance(self, instance, produce_type=None, context=DEFAULT_CONTEXT, priority=None):
         producer = (lambda *args, **kwargs: instance)
         produce_type = type(instance) if produce_type is None else produce_type
-        self.register_producer(producer, produce_type, context)
+        self.register_producer(producer, produce_type, context, priority)
 
-    def register_producer(self, producer, produce_type=object, context=DEFAULT_CONTEXT):
+    def register_producer(self, producer, produce_type=object, context=DEFAULT_CONTEXT, priority=None):
         context_producers = self.producers.get(context, dict())
-        context_producers[produce_type] = producer
+        producer_item = (priority, producer,)
         types = inspect.getmro(produce_type)
         for t in types:
-            context_producers[t] = producer
+            producers = context_producers.get(t, [])
+            if priority is None:
+                context_producers[t] = [producer_item]
+            else:
+                context_producers[t] = sorted([producer_item] + producers, key=first)
         self.producers[context] = context_producers
 
     def get_producer(self, produce_type=object, context=DEFAULT_CONTEXT):
         context_producers = self.producers.get(context, dict())
         producer = context_producers.get(produce_type, False)
         if producer:
-            return producer
+            return producer[0][1]
         if self.parent is not None:
             return self.parent.get_producer(produce_type, context=context)
         else:
             return produce_type
+
+    def get_producers(self, produce_type=object, context=DEFAULT_CONTEXT):
+        context_producers = self.producers.get(context, dict())
+        producer = context_producers.get(produce_type, False)
+        producers = []
+        if producer:
+            producers = producer
+        if self.parent is not None:
+            producers += self.parent.get_producers(produce_type, context=context)
+        return sorted(producers, key=first)
 
     def sub_container(self, *args, **kwargs):
         container = PyCDIContainer(parent=self)
@@ -113,16 +145,19 @@ class PyCDIContainer(CDIContainer):
         return self.call(producer, injection_point=injection_point)
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
-        producer = self.get_producer(produce_type, context)
-        return self.call(producer)
+        if hasattr(produce_type, '__iter__'):
+            return map(self.call, map(last, self.get_producers(first(produce_type), context)))
+        else:
+            producer = self.get_producer(produce_type, context)
+            return self.call(producer)
 
     def _resolve_di_args(self, member, di_args, args):
-        injection_points = map(lambda kv: InjectionPoint(member, kv[0], *kv[1]), zip(range(len(di_args)), di_args))
+        injection_points = map(lambda kv: InjectionPoint.make(member, kv[0], *kv[1]), zip(range(len(di_args)), di_args))
         inject_args = list(map(lambda ij: self.resolve(ij), injection_points)) + list(args)
         return inject_args
 
     def _resolve_di_kwargs(self, member, di_kwargs, kwargs):
-        injection_points = map(lambda kv: InjectionPoint(member, kv[0], *kv[1]), di_kwargs.items())
+        injection_points = map(lambda kv: InjectionPoint.make(member, kv[0], *kv[1]), di_kwargs.items())
         inject_kwargs = dict(map(lambda ij: (ij.name, self.resolve(ij, kwargs)), injection_points))
         return inject_kwargs
 
@@ -188,13 +223,14 @@ class Inject(CDIDecorator):
 
 
 class Producer(CDIDecorator):
-    def __init__(self, produce_type=None, _context=DEFAULT_CONTEXT, _container=DEFAULT_CONTAINER):
+    def __init__(self, produce_type=None, _context=DEFAULT_CONTEXT, _priority=None, _container=DEFAULT_CONTAINER):
         super(Producer, self).__init__(_container)
         self.produce_type = produce_type
         self.context = _context
+        self.priority = _priority
 
     def __call__(self, producer):
         annotations = getattr(producer, '__annotations__', {})
         produce_type = annotations.get('return', self.produce_type or object)
-        self.container.register_producer(producer, produce_type, self.context)
+        self.container.register_producer(producer, produce_type, self.context, self.priority)
         return producer
