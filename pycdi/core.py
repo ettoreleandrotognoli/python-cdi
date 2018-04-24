@@ -106,7 +106,7 @@ class PyCDIContainer(CDIContainer):
                 container.register_instance(instance, context=context)
         return container
 
-    def resolve(self, injection_point, **kwargs):
+    def resolve(self, injection_point, kwargs=None):
         if kwargs and injection_point.name in kwargs:
             return kwargs[injection_point.name]
         producer = self.get_producer(injection_point.type, injection_point.context)
@@ -123,7 +123,7 @@ class PyCDIContainer(CDIContainer):
 
     def _resolve_di_kwargs(self, member, di_kwargs, kwargs):
         injection_points = map(lambda kv: InjectionPoint(member, kv[0], *kv[1]), di_kwargs.items())
-        inject_kwargs = dict(map(lambda ij: (ij.name, self.resolve(ij, **kwargs)), injection_points))
+        inject_kwargs = dict(map(lambda ij: (ij.name, self.resolve(ij, kwargs)), injection_points))
         return inject_kwargs
 
     def call(self, function, *args, **kwargs):
