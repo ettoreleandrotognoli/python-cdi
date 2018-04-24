@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 __author__ = 'ettore'
-__version__ = (0, 0, 5)
+__version__ = (0, 1, 0)
 
 import os
 
