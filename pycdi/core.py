@@ -31,7 +31,7 @@ class CDIContainer(object):
     def sub_container(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def resolve(self, injection_point):
+    def resolve(self, injection_point, **kwargs):
         raise NotImplementedError()
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
