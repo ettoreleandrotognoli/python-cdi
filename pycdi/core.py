@@ -82,6 +82,12 @@ def last(it):
     return it[-1]
 
 
+def sorted_producers(producers):
+    none_priority = filter(lambda it: first(it) is None, producers)
+    with_priority = filter(lambda it: first(it) is not None, producers)
+    return list(none_priority) + sorted(with_priority, key=first)
+
+
 class PyCDIContainer(CDIContainer):
     def __init__(self, producers=None, parent=None):
         self.parent = parent
@@ -102,7 +108,7 @@ class PyCDIContainer(CDIContainer):
             if priority is None:
                 context_producers[t] = [producer_item]
             else:
-                context_producers[t] = sorted([producer_item] + producers, key=first)
+                context_producers[t] = sorted_producers([producer_item] + producers)
         self.producers[context] = context_producers
 
     def get_producer(self, produce_type=object, context=DEFAULT_CONTEXT):
@@ -123,7 +129,7 @@ class PyCDIContainer(CDIContainer):
             producers = producer
         if self.parent is not None:
             producers += self.parent.get_producers(produce_type, context=context)
-        return sorted(producers, key=first)
+        return sorted_producers(producers)
 
     def sub_container(self, *args, **kwargs):
         container = PyCDIContainer(parent=self)
