@@ -31,7 +31,7 @@ class CDIContainer(object):
     def sub_container(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def resolve(self, injection_point, **kwargs):
+    def resolve(self, injection_point):
         raise NotImplementedError()
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
@@ -106,11 +106,10 @@ class PyCDIContainer(CDIContainer):
                 container.register_instance(instance, context=context)
         return container
 
-    def resolve(self, injection_point, kwargs=None):
-        if kwargs and injection_point.name in kwargs:
-            return kwargs[injection_point.name]
+    def resolve(self, injection_point):
         producer = self.get_producer(injection_point.type, injection_point.context)
-        return self.call(producer, injection_point=injection_point)
+        sub_container = self.sub_container(self, injection_point)
+        return sub_container.call(producer)
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
         producer = self.get_producer(produce_type, context)
@@ -123,7 +122,8 @@ class PyCDIContainer(CDIContainer):
 
     def _resolve_di_kwargs(self, member, di_kwargs, kwargs):
         injection_points = map(lambda kv: InjectionPoint(member, kv[0], *kv[1]), di_kwargs.items())
-        inject_kwargs = dict(map(lambda ij: (ij.name, self.resolve(ij, kwargs)), injection_points))
+        inject_kwargs = dict(map(lambda ij: (ij.name, self.resolve(ij)), injection_points))
+        inject_kwargs.update(kwargs)
         return inject_kwargs
 
     def call(self, function, *args, **kwargs):
