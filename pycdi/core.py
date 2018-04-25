@@ -41,7 +41,7 @@ class CDIContainer(object):
     def sub_container(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def resolve(self, injection_point, **kwargs):
+    def resolve(self, injection_point):
         raise NotImplementedError()
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
@@ -66,10 +66,10 @@ def get_di_args(obj):
 def get_di_kwargs(obj):
     di_kwargs = getattr(obj, INJECT_KWARGS, {})
     forward_references = dict([
-        (k, (resolve_forward_reference(v[0], obj), v[1]))
-        for k, v in di_kwargs.items()
-        if isinstance(v[0], string_types)
-    ])
+                                  (k, (resolve_forward_reference(v[0], obj), v[1]))
+                                  for k, v in di_kwargs.items()
+                                  if isinstance(v[0], string_types)
+                                  ])
     di_kwargs.update(forward_references)
     return di_kwargs
 
@@ -141,12 +141,13 @@ class PyCDIContainer(CDIContainer):
     def resolve(self, injection_point, kwargs=None):
         if kwargs and injection_point.name in kwargs:
             return kwargs[injection_point.name]
+        sub_container = self.sub_container(self, injection_point)
         if injection_point.multiple:
             producers = self.get_producers(injection_point.type, injection_point.context)
-            return map(lambda it: self.call(it, injection_point=injection_point), map(last, producers))
+            return map(sub_container.call, map(last, producers))
         else:
             producer = self.get_producer(injection_point.type, injection_point.context)
-            return self.call(producer, injection_point=injection_point)
+            return sub_container.call(producer)
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
         if isinstance(produce_type, (tuple, list,)):
@@ -163,6 +164,7 @@ class PyCDIContainer(CDIContainer):
     def _resolve_di_kwargs(self, member, di_kwargs, kwargs):
         injection_points = map(lambda kv: InjectionPoint.make(member, kv[0], *kv[1]), di_kwargs.items())
         inject_kwargs = dict(map(lambda ij: (ij.name, self.resolve(ij, kwargs)), injection_points))
+        inject_kwargs.update(kwargs)
         return inject_kwargs
 
     def call(self, function, *args, **kwargs):
