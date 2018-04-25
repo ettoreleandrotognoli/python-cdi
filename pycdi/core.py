@@ -13,7 +13,7 @@ INJECT_KWARGS = '_inject_kwargs'
 class InjectionPoint(object):
     @classmethod
     def make(cls, member=None, name=None, type=object, context=DEFAULT_CONTEXT):
-        multiple = hasattr(type, '__iter__')
+        multiple = isinstance(type, (tuple, list,))
         type = first(type) if multiple else type
         return cls(member, name, type, context, multiple)
 
@@ -141,11 +141,15 @@ class PyCDIContainer(CDIContainer):
     def resolve(self, injection_point, kwargs=None):
         if kwargs and injection_point.name in kwargs:
             return kwargs[injection_point.name]
-        producer = self.get_producer(injection_point.type, injection_point.context)
-        return self.call(producer, injection_point=injection_point)
+        if injection_point.multiple:
+            producers = self.get_producers(injection_point.type, injection_point.context)
+            return map(lambda it: self.call(it, injection_point=injection_point), map(last, producers))
+        else:
+            producer = self.get_producer(injection_point.type, injection_point.context)
+            return self.call(producer, injection_point=injection_point)
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
-        if hasattr(produce_type, '__iter__'):
+        if isinstance(produce_type, (tuple, list,)):
             return map(self.call, map(last, self.get_producers(first(produce_type), context)))
         else:
             producer = self.get_producer(produce_type, context)
