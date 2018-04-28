@@ -2,6 +2,8 @@
 import random
 
 from .core import CDIDecorator, DEFAULT_CONTAINER
+import os
+import glob
 
 random_strategy = random.choice
 
@@ -52,3 +54,11 @@ class Provide(CDIDecorator):
             return self.container.call(func, *args, **kwargs)
 
         return wrapper
+
+
+def boot_cdi(paths=['*_cdi.py'], root=''):
+    files = []
+    for path in paths:
+        path = os.path.join(root, path)
+        files += glob.iglob(path)
+    return files
