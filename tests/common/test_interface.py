@@ -23,6 +23,8 @@ class InterfaceCDITest(unittest.TestCase):
             container.sub_container()
         with self.assertRaises(NotImplementedError):
             container.resolve(None)
+        with self.assertRaises(NotImplementedError):
+            container.get_producers()
 
     def test_decorator(self):
         with self.assertRaises(NotImplementedError):
