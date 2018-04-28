@@ -34,3 +34,13 @@ class CallTest(TestCase):
             self.assertIsNotNone(cdi)
 
         self.container.call(django_view, object(), pk=1)
+
+    def test_override_cdi(self):
+        @Inject(cdi=CDIContainer)
+        def django_view(request, pk, cdi):
+            self.assertIsNotNone(request)
+            self.assertIsNotNone(pk)
+            self.assertIsNotNone(cdi)
+            self.assertEqual(cdi, 'fuu')
+
+        self.container.call(django_view, object(), pk=1, cdi='fuu')
