@@ -1,5 +1,5 @@
 *.egg-info
-venv/
+venv*/
 dist/
 build/
 htmlcov/

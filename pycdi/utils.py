@@ -1,5 +1,10 @@
 # -*- encoding: utf-8 -*-
+import glob
 import random
+import sys
+
+import os
+from six import string_types
 
 from .core import CDIDecorator, DEFAULT_CONTAINER
 
@@ -52,3 +57,18 @@ class Provide(CDIDecorator):
             return self.container.call(func, *args, **kwargs)
 
         return wrapper
+
+
+def boot_cdi(paths=['*_cdi.py'], root=None):
+    root = sys.path if root is None else root
+    if isinstance(root, string_types):
+        root = [root]
+    libs = []
+    for base_path in root:
+        for path in paths:
+            search_rule = os.path.join(base_path, path)
+            for file_name in list(glob.iglob(search_rule)):
+                file_name, ext = os.path.splitext(file_name)
+                lib = '.'.join(filter(None, file_name[len(base_path):].split(os.sep)))
+                libs.append(lib)
+    return list(map(__import__, libs))
