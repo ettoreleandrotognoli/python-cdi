@@ -13,6 +13,18 @@ PyCDI
 
 .. image:: https://img.shields.io/pypi/dm/pycdi.svg
     :target: https://pypi.python.org/pypi/pycdi#downloads
+    
+.. image:: https://api.codeclimate.com/v1/badges/b17d7c12edab60606f4c/maintainability
+   :target: https://codeclimate.com/github/ettoreleandrotognoli/python-cdi/maintainability
+   :alt: Maintainability
+   
+.. image:: https://api.codeclimate.com/v1/badges/b17d7c12edab60606f4c/test_coverage
+   :target: https://codeclimate.com/github/ettoreleandrotognoli/python-cdi/test_coverage
+   :alt: Test Coverage
+
+.. image:: https://www.codefactor.io/repository/github/ettoreleandrotognoli/python-cdi/badge
+    :target: https://www.codefactor.io/repository/github/ettoreleandrotognoli/python-cdi
+    :alt: CodeFactor
 
 A simple Python CDI ( Code Dependency Injection) Library.
 
