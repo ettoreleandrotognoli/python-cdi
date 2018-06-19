@@ -59,7 +59,7 @@ class Provide(CDIDecorator):
         return wrapper
 
 
-def boot_cdi(paths=['*_cdi.py'], root=None):
+def boot_cdi(paths=('*_cdi.py',), root=None):
     root = sys.path if root is None else root
     if isinstance(root, string_types):
         root = [root]
