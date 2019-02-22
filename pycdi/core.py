@@ -66,10 +66,10 @@ def get_di_args(obj):
 def get_di_kwargs(obj):
     di_kwargs = getattr(obj, INJECT_KWARGS, {})
     forward_references = dict([
-                                  (k, (resolve_forward_reference(v[0], obj), v[1]))
-                                  for k, v in di_kwargs.items()
-                                  if isinstance(v[0], string_types)
-                                  ])
+        (k, (resolve_forward_reference(v[0], obj), v[1]))
+        for k, v in di_kwargs.items()
+        if isinstance(v[0], string_types)
+    ])
     di_kwargs.update(forward_references)
     return di_kwargs
 
@@ -98,6 +98,7 @@ class PyCDIContainer(CDIContainer):
         producer = (lambda *args, **kwargs: instance)
         produce_type = type(instance) if produce_type is None else produce_type
         self.register_producer(producer, produce_type, context, priority)
+        return instance
 
     def register_producer(self, producer, produce_type=object, context=DEFAULT_CONTEXT, priority=None):
         context_producers = self.producers.get(context, dict())
@@ -110,6 +111,7 @@ class PyCDIContainer(CDIContainer):
             else:
                 context_producers[t] = sorted_producers([producer_item] + producers)
         self.producers[context] = context_producers
+        return producer
 
     def get_producer(self, produce_type=object, context=DEFAULT_CONTEXT):
         context_producers = self.producers.get(context, dict())
