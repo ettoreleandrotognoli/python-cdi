@@ -8,6 +8,7 @@ DEFAULT_CONTEXT = 'default'
 
 INJECT_ARGS = '_inject_args'
 INJECT_KWARGS = '_inject_kwargs'
+INJECT_RETURN = '_inject_return'
 
 
 class InjectionPoint(object):
@@ -245,20 +246,31 @@ class Producer(CDIDecorator):
         annotations = getattr(producer, '__annotations__', {})
         produce_type = annotations.get('return', self.produce_type or object)
         self.container.register_producer(producer, produce_type, self.context, self.priority)
+        setattr(producer, INJECT_RETURN, self.produce_type)
         return producer
 
 
-class Service(Inject):
+class Component(Inject):
 
     def __init__(self, *args, **kwargs):
-        super(Service, self).__init__(*args, **kwargs)
+        super(Component, self).__init__(*args, **kwargs)
 
-    def __call__(self, service_class):
-        super(Service, self).__call__(service_class)
+    def __call__(self, component_class):
+        super(Component, self).__call__(component_class)
 
-        def service_provider():
-            return self.container.call(service_class)
+        def component_provider():
+            return self.container.call(component_class)
 
-        self.container.register_producer(service_provider)
+        self.container.register_producer(component_provider)
 
-        return service_class
+        for name, value in component_class.__dict__.items():
+            produce_type = getattr(value, INJECT_RETURN, False)
+            if produce_type is False:
+                continue
+            Inject(component_class)(value)
+
+        return component_class
+
+
+class Service(Component):
+    pass
