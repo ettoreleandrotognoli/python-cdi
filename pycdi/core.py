@@ -66,10 +66,10 @@ def get_di_args(obj):
 def get_di_kwargs(obj):
     di_kwargs = getattr(obj, INJECT_KWARGS, {})
     forward_references = dict([
-                                  (k, (resolve_forward_reference(v[0], obj), v[1]))
-                                  for k, v in di_kwargs.items()
-                                  if isinstance(v[0], string_types)
-                                  ])
+        (k, (resolve_forward_reference(v[0], obj), v[1]))
+        for k, v in di_kwargs.items()
+        if isinstance(v[0], string_types)
+    ])
     di_kwargs.update(forward_references)
     return di_kwargs
 
@@ -246,3 +246,19 @@ class Producer(CDIDecorator):
         produce_type = annotations.get('return', self.produce_type or object)
         self.container.register_producer(producer, produce_type, self.context, self.priority)
         return producer
+
+
+class Service(Inject):
+
+    def __init__(self, *args, **kwargs):
+        super(Service, self).__init__(*args, **kwargs)
+
+    def __call__(self, service_class):
+        super(Service, self).__call__(service_class)
+
+        def service_provider():
+            return self.container.call(service_class)
+
+        self.container.register_producer(service_provider)
+
+        return service_class
