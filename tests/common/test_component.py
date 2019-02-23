@@ -1,23 +1,24 @@
-from unittest import TestCase
-
 from pycdi.core import Component, Inject, Producer
-from pycdi.shortcuts import call
+from pycdi.core import PyCDIContainer
+from tests import TestCase
+
+container = PyCDIContainer()
 
 
-@Component()
+@Component(_container=container)
 class AnyComponent(object):
 
     def __init__(self):
         pass
 
 
-@Component()
+@Component(_container=container)
 class ComponentWithProducers(object):
 
     def __init__(self):
         self.counter = 0
 
-    @Producer(int)
+    @Producer(int, _container=container)
     def next_int(self):
         self.counter += 1
         return self.counter
@@ -26,20 +27,20 @@ class ComponentWithProducers(object):
 class ComponentTest(TestCase):
 
     def test_inject_component(self):
-        @Inject(component=AnyComponent)
+        @Inject(component=AnyComponent, _container=container)
         def receive_component(component):
             self.assertIsInstance(component, AnyComponent)
 
-        call(receive_component)
+        container.call(receive_component)
 
     def test_inject_from_component_method(self):
         expected = 1
 
-        @Inject(number=int)
+        @Inject(number=int, _container=container)
         def receive_component_product(number):
             self.assertIsInstance(number, int)
             self.assertEqual(number, expected)
 
-        call(receive_component_product)
+        container.call(receive_component_product)
         expected = 2
-        call(receive_component_product)
+        container.call(receive_component_product)

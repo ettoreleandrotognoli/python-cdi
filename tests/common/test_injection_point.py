@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
-import unittest
+from tests import TestCase
 from random import random, choice
 
 from pycdi import Producer, Inject
 from pycdi.core import InjectionPoint, PyCDIContainer
 
 
-class InjectionPointTest(unittest.TestCase):
+class InjectionPointTest(TestCase):
     float_injection_point = None
     str_injection_point = None
 

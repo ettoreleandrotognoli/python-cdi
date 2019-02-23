@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
-import unittest
+from tests import TestCase
 
 from pycdi.core import PyCDIContainer
 
 
-class ContainerTest(unittest.TestCase):
+class ContainerTest(TestCase):
     def test_simple_sub_container(self):
         container = PyCDIContainer()
         container.register_instance(1)

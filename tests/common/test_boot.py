@@ -1,4 +1,4 @@
-from unittest import TestCase
+from tests import TestCase
 
 import os
 

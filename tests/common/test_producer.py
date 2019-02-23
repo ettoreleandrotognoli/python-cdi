@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-import unittest
+from tests import TestCase
 
 from pycdi import Producer, Inject
 from pycdi.core import DEFAULT_CONTAINER
@@ -12,7 +12,7 @@ def get_some_string():
     return SOME_STRING
 
 
-class TestProducer(unittest.TestCase):
+class TestProducer(TestCase):
     def test_reference(self):
         self.assertIsNotNone(get_some_string)
         self.assertEqual(SOME_STRING, get_some_string())
@@ -28,7 +28,7 @@ def get_another_int():
     return 1
 
 
-class TestMultipleProducer(unittest.TestCase):
+class TestMultipleProducer(TestCase):
     def test_priority(self):
         self.assertEqual(DEFAULT_CONTAINER.produce(int), 0)
         self.assertEqual(list(DEFAULT_CONTAINER.produce([int])), [0, 1])

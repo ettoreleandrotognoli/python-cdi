@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
 
-import unittest
+from tests import TestCase
 
 from pycdi import Inject
 from pycdi.core import DEFAULT_CONTAINER
 
 
-class InheritanceTest(unittest.TestCase):
+class InheritanceTest(TestCase):
     def test_inheritance(self):
         test_case = self
         DEFAULT_CONTAINER.register_instance('inheritance', str)
