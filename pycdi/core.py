@@ -8,6 +8,7 @@ DEFAULT_CONTEXT = 'default'
 
 INJECT_ARGS = '_inject_args'
 INJECT_KWARGS = '_inject_kwargs'
+INJECT_RETURN = '_inject_return'
 
 
 class InjectionPoint(object):
@@ -48,6 +49,9 @@ class CDIContainer(object):
         raise NotImplementedError()
 
     def call(self, function, *args, **kwargs):
+        raise NotImplementedError()
+
+    def clear(self):
         raise NotImplementedError()
 
 
@@ -182,6 +186,10 @@ class PyCDIContainer(CDIContainer):
         inject_kwargs = self._resolve_di_kwargs(function, di_kwargs, kwargs)
         return function(*inject_args, **inject_kwargs)
 
+    def clear(self):
+        self.producers = dict()
+        self.register_instance(self)
+
 
 DEFAULT_CONTAINER = PyCDIContainer()
 
@@ -247,4 +255,56 @@ class Producer(CDIDecorator):
         annotations = getattr(producer, '__annotations__', {})
         produce_type = annotations.get('return', self.produce_type or object)
         self.container.register_producer(producer, produce_type, self.context, self.priority)
+        setattr(producer, INJECT_RETURN, self.produce_type)
         return producer
+
+
+class LazyProvider():
+
+    def __init__(self, factory):
+        self.factory = factory
+        self.instance = None
+        self.call_method = self.make_instance
+
+    def make_instance(self):
+        self.instance = self.factory()
+        self.call_method = self.get_instance
+        return self.instance
+
+    def get_instance(self):
+        return self.instance
+
+    def __call__(self):
+        return self.call_method()
+
+
+class Component(Inject):
+
+    def __init__(self, *args, **kwargs):
+        self.priority = kwargs.pop('priority', None)
+        super(Component, self).__init__(*args, **kwargs)
+
+    def __call__(self, component_class):
+        super(Component, self).__call__(component_class)
+
+        def component_provider():
+            return self.container.call(component_class)
+
+        self.container.register_producer(
+            LazyProvider(component_provider),
+            component_class,
+            self.context,
+            self.priority,
+        )
+
+        for name, value in component_class.__dict__.items():
+            produce_type = getattr(value, INJECT_RETURN, False)
+            if produce_type is False:
+                continue
+            Inject(component_class, _container=self.container)(value)
+
+        return component_class
+
+
+class Service(Component):
+    pass

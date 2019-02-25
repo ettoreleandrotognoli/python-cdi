@@ -1,4 +1,4 @@
-from unittest import TestCase
+from tests import TestCase
 
 from pycdi import Inject
 from pycdi.core import PyCDIContainer, CDIContainer

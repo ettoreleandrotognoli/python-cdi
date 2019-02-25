@@ -1,12 +1,11 @@
 # -*- encoding: utf-8 -*-
-import unittest
-
 from pycdi import Inject
 from pycdi.core import CDIContainer, CDIDecorator
 from pycdi.shortcuts import call
+from tests import TestCase
 
 
-class InterfaceCDITest(unittest.TestCase):
+class InterfaceCDITest(TestCase):
     def test_methods(self):
         container = CDIContainer()
         with self.assertRaises(NotImplementedError):
@@ -25,13 +24,15 @@ class InterfaceCDITest(unittest.TestCase):
             container.resolve(None)
         with self.assertRaises(NotImplementedError):
             container.get_producers()
+        with self.assertRaises(NotImplementedError):
+            container.clear()
 
     def test_decorator(self):
         with self.assertRaises(NotImplementedError):
             CDIDecorator()()
 
 
-class InjectInterfaceTest(unittest.TestCase):
+class InjectInterfaceTest(TestCase):
     def test_error(self):
         def method(*args, **kwargs):
             pass
