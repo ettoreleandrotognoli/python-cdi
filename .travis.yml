@@ -1,9 +1,6 @@
 language: python
 cache: pip
 sudo: false
-env:
-  global:
-    - CC_TEST_REPORTER_ID=8baf5900b3c0520c3a1e3d627d0de5ca1446555def139e1972e8c32d49278c94
 python:
   - 2.7
   - 3.4
@@ -15,10 +12,10 @@ before_script:
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 install:
-  - pip install -U pip six setuptools codecov
+  - pip install -U pip six setuptools coverage
   - python setup.py install
 script: make coverage
 after_success:
-  - codecov
+  - bash < (curl -s https://codecov.io/bash)
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT

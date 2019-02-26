@@ -124,8 +124,7 @@ class PyCDIContainer(CDIContainer):
             return producer[0][1]
         if self.parent is not None:
             return self.parent.get_producer(produce_type, context=context)
-        else:
-            return produce_type
+        return produce_type
 
     def get_producers(self, produce_type=object, context=DEFAULT_CONTEXT):
         context_producers = self.producers.get(context, dict())
@@ -157,20 +156,18 @@ class PyCDIContainer(CDIContainer):
         if injection_point.multiple:
             producers = self.get_producers(injection_point.type, injection_point.context)
             return map(sub_container.call, map(last, producers))
-        else:
-            producer = self.get_producer(injection_point.type, injection_point.context)
-            return sub_container.call(producer)
+        producer = self.get_producer(injection_point.type, injection_point.context)
+        return sub_container.call(producer)
 
     def produce(self, produce_type, context=DEFAULT_CONTEXT):
         if isinstance(produce_type, (tuple, list,)):
             return map(self.call, map(last, self.get_producers(first(produce_type), context)))
-        else:
-            producer = self.get_producer(produce_type, context)
-            return self.call(producer)
+        producer = self.get_producer(produce_type, context)
+        return self.call(producer)
 
     def _resolve_di_args(self, member, di_args, args):
         injection_points = map(lambda kv: InjectionPoint.make(member, kv[0], *kv[1]), zip(range(len(di_args)), di_args))
-        inject_args = list(map(lambda ij: self.resolve(ij), injection_points)) + list(args)
+        inject_args = list(map(self.resolve, injection_points)) + list(args)
         return inject_args
 
     def _resolve_di_kwargs(self, member, di_kwargs, kwargs):
@@ -227,7 +224,7 @@ class Inject(CDIDecorator):
             annotations = getattr(to_inject.__init__, '__annotations__', {})
         else:
             annotations = getattr(to_inject, '__annotations__', {})
-        parameters = dict(filter(lambda item: item[0] is not 'return', annotations.items()))
+        parameters = dict(filter(lambda item: item[0] != 'return', annotations.items()))
         inject_args = [] if self.override else list(getattr(to_inject, INJECT_ARGS, []))
         inject_args += [prepare_injector_argument(t, object, self.context, ) for t in self.args]
         inject_kwargs = {} if self.override else dict(getattr(to_inject, INJECT_KWARGS, {}))
