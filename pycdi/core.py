@@ -257,7 +257,7 @@ class Producer(CDIDecorator):
         return producer
 
 
-class LazyProvider():
+class LazyProvider(object):
 
     def __init__(self, factory):
         self.factory = factory
