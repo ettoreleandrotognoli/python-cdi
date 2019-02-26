@@ -17,6 +17,7 @@ coverage: clean
 	coverage run -a -m unittest discover -s "tests/common" -p "test_*.py"
 	coverage run -a -m unittest discover -s "tests/py${python_version_major}/unit" -p "test_*.py"
 	coverage html --include="pycdi/*,examples/*"
+	coverage xml --include="pycdi/*,examples/*" 
 
 coverage-all: clean
 	coverage run -a -m unittest discover -s "tests/common" -p "test_*.py"
