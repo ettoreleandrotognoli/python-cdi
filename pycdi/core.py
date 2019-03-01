@@ -86,6 +86,10 @@ def last(it):
     return it[-1]
 
 
+def is_producer(it):
+    return getattr(it, INJECT_RETURN, False)
+
+
 def sorted_producers(producers):
     none_priority = filter(lambda it: first(it) is None, producers)
     with_priority = filter(lambda it: first(it) is not None, producers)
@@ -102,6 +106,11 @@ class PyCDIContainer(CDIContainer):
         producer = (lambda *args, **kwargs: instance)
         produce_type = type(instance) if produce_type is None else produce_type
         self.register_producer(producer, produce_type, context, priority)
+        for key, value in instance.__class__.__dict__.items():
+            produce_type = is_producer(value)
+            if produce_type is False:
+                continue
+            self.register_producer(getattr(instance, key), produce_type)
         return instance
 
     def register_producer(self, producer, produce_type=object, context=DEFAULT_CONTEXT, priority=None):
@@ -295,7 +304,7 @@ class Component(Inject):
         )
 
         for name, value in component_class.__dict__.items():
-            produce_type = getattr(value, INJECT_RETURN, False)
+            produce_type = is_producer(value)
             if produce_type is False:
                 continue
             Inject(component_class, _container=self.container)(value)

@@ -1,8 +1,7 @@
 # -*- encoding: utf-8 -*-
-from tests import TestCase
-
 from pycdi import Producer, Inject
 from pycdi.core import DEFAULT_CONTAINER
+from tests import TestCase
 
 SOME_STRING = 'some_string'
 
@@ -50,3 +49,23 @@ class TestMultipleProducer(TestCase):
 
         DEFAULT_CONTAINER.call(function_with_injection)
         self.assertTrue(self.called)
+
+
+class TestProducersInInstance(TestCase):
+
+    def test_simple(self):
+        class NewType:
+            pass
+
+        new_type = NewType()
+
+        class WithProducer:
+
+            @Producer(produce_type=NewType)
+            def make_int(self):
+                return new_type
+
+        instance = WithProducer()
+        self.container.register_instance(instance)
+        produced = self.container.produce(NewType)
+        self.assertIs(produced, new_type)
