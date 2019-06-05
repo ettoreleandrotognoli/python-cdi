@@ -86,7 +86,7 @@ You can see more examples in the examples folder (examples/common).
 Python 3
 ~~~~~~~~
 
-With Python 3 is possible define the types of injections with the type hints.
+With Python 3 it is possible to define the types of injection with Python type hints.
 
 You can see more examples in the examples folder( examples/py3/ ).
 
@@ -114,7 +114,7 @@ You can see more examples in the examples folder( examples/py3/ ).
     @Inject(name='app_name')
     def main(name: str, logger: Logger):
         logger.info('I\'m starting...')
-        print('Hello World!!!\nI\'m a example of %s' % name)
+        print('Hello World!!!\nI\'m an example of %s' % name)
         logger.debug('I\'m finishing...')
     
     
