@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 __author__ = 'ettore'
-__version__ = (0, 1, 2)
+__version__ = (0, 2, 0)
 
 import os
 
@@ -30,13 +30,11 @@ setup(
     classifiers=[
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Development Status :: 2 - Pre-Alpha',
         'License :: OSI Approved :: BSD License',
     ],
     install_requires=[
-        'six',
     ],
     # tests_require=[],
 )
