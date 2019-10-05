@@ -4,10 +4,10 @@ python_version_minor := $(word 2,${python_version_full})
 python_version_patch := $(word 3,${python_version_full})
 
 test:
-	python -m unittest discover -s "tests/" -p "test_*.py"
+	pipenv run python -m unittest discover -s "tests/" -p "test_*.py"
 
 test-all:
-	python -m unittest discover -s "tests/" -p "test_*.py"
+	pipenv run python -m unittest discover -s "tests/" -p "test_*.py"
 
 coverage: clean
 	coverage run -a -m unittest discover -s "tests/common" -p "test_*.py"

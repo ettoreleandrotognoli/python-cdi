@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
-import unittest
-from pycdi.core import CDIContainer, DEFAULT_CONTAINER
+from tests import TestCase
+from pycdi.core import DEFAULT_CONTAINER
+from pycdi.api import CDIContainer
 from pycdi import Producer, Inject
 from pycdi.shortcuts import new, call
 
@@ -28,7 +29,7 @@ def another_function_with_injection(some_string: str) -> str:
     return some_string
 
 
-class SimpleCDITest(unittest.TestCase):
+class SimpleCDITest(TestCase):
     def test_default_str_producer(self):
         expected = SOME_STRING
         result = new(str)
@@ -75,7 +76,7 @@ def get_subclass_b() -> SubclassB:
     return SubclassB()
 
 
-class CDITest(unittest.TestCase):
+class CDITest(TestCase):
     def test_base_class(self):
         with self.assertRaises(NotImplementedError):
             base = BaseClass()
@@ -101,12 +102,12 @@ class ComplexClass(object):
         self.another_string = another_string
 
     @Inject()
-    def method_with_injection(self, test: unittest.TestCase):
+    def method_with_injection(self, test: TestCase):
         test.assertEqual(self.some_string, SOME_STRING)
         test.assertEqual(self.another_string, ANOTHER_STRING)
 
 
-class ClassInjectTest(unittest.TestCase):
+class ClassInjectTest(TestCase):
     def test_init_complex_class(self):
         complex_class = new(ComplexClass)
         self.assertIsInstance(complex_class, ComplexClass)
@@ -124,7 +125,7 @@ class ClassInjectTest(unittest.TestCase):
         call(complex_class.method_with_injection)
 
 
-class SelfInjectTest(unittest.TestCase):
+class SelfInjectTest(TestCase):
     def test_simple_function(self):
         @Inject()
         def function(container: CDIContainer):

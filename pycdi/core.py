@@ -1,58 +1,12 @@
 # -*- encoding: utf-8 -*-
 import collections
 import inspect
+from typing import Union, Tuple
+from typing import get_type_hints
 
-from six import string_types
+from pycdi.api import *
 
-DEFAULT_CONTEXT = 'default'
-
-INJECT_ARGS = '_inject_args'
-INJECT_KWARGS = '_inject_kwargs'
-INJECT_RETURN = '_inject_return'
-
-
-class InjectionPoint(object):
-    @classmethod
-    def make(cls, member=None, name=None, type=object, context=DEFAULT_CONTEXT):
-        multiple = isinstance(type, (tuple, list,))
-        type = first(type) if multiple else type
-        return cls(member, name, type, context, multiple)
-
-    def __init__(self, member=None, name=None, type=object, context=DEFAULT_CONTEXT, multiple=False):
-        self.context = context
-        self.name = name
-        self.member = member
-        self.type = type
-        self.multiple = multiple
-
-
-class CDIContainer(object):
-    def register_instance(self, instance, product_type=None, context=DEFAULT_CONTEXT, priority=None):
-        raise NotImplementedError()
-
-    def register_producer(self, producer, produce_type=object, context=DEFAULT_CONTEXT, priority=None):
-        raise NotImplementedError()
-
-    def get_producer(self, produce_type=object, context=DEFAULT_CONTEXT):
-        raise NotImplementedError()
-
-    def get_producers(self, produce_type=object, context=DEFAULT_CONTEXT):
-        raise NotImplementedError()
-
-    def sub_container(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def resolve(self, injection_point):
-        raise NotImplementedError()
-
-    def produce(self, produce_type, context=DEFAULT_CONTEXT):
-        raise NotImplementedError()
-
-    def call(self, function, *args, **kwargs):
-        raise NotImplementedError()
-
-    def clear(self):
-        raise NotImplementedError()
+UnresolvedType = Union[Type, str]
 
 
 def resolve_forward_reference(reference_name, scope):
@@ -61,7 +15,7 @@ def resolve_forward_reference(reference_name, scope):
 
 def get_di_args(obj):
     di_args = getattr(obj, INJECT_ARGS, [])
-    forward_references = [(index, value) for index, value in enumerate(di_args) if isinstance(value[0], string_types)]
+    forward_references = [(index, value) for index, value in enumerate(di_args) if isinstance(value[0], str)]
     for index, value in forward_references:
         di_args[index] = (resolve_forward_reference(value[0], obj), value[1],)
     return di_args
@@ -72,18 +26,10 @@ def get_di_kwargs(obj):
     forward_references = dict([
         (k, (resolve_forward_reference(v[0], obj), v[1]))
         for k, v in di_kwargs.items()
-        if isinstance(v[0], string_types)
+        if isinstance(v[0], str)
     ])
     di_kwargs.update(forward_references)
     return di_kwargs
-
-
-def first(it):
-    return it[0]
-
-
-def last(it):
-    return it[-1]
 
 
 def sorted_producers(producers):
@@ -139,7 +85,7 @@ class PyCDIContainer(CDIContainer):
         for instance in args:
             container.register_instance(instance)
         for context, instances in kwargs.items():
-            if isinstance(instances, string_types):
+            if isinstance(instances, str):
                 instances = [instances]
             if not isinstance(instances, collections.Iterable):
                 instances = [instances]
@@ -197,10 +143,13 @@ class CDIDecorator(object):
         raise NotImplementedError()
 
 
-def prepare_injector_argument(arg, default_type, default_context):
+def prepare_injector_argument(
+        arg: Union[UnresolvedType, Tuple[UnresolvedType, str]],
+        default_type: Type,
+        default_context: str) -> Tuple[UnresolvedType, str]:
     if isinstance(arg, type):
         return arg, default_context
-    elif isinstance(arg, string_types):
+    elif isinstance(arg, str):
         return default_type, arg
     elif isinstance(arg, tuple):
         return arg
@@ -228,11 +177,14 @@ class Inject(CDIDecorator):
         inject_kwargs = {} if self.override else dict(getattr(to_inject, INJECT_KWARGS, {}))
         keys = set(parameters.keys()) | set(self.kwargs.keys())
         inject_kwargs.update(dict(
-            [(k, prepare_injector_argument(
-                self.kwargs.get(k, k if self.name_as_context else self.context),
-                parameters.get(k, object),
-                k if self.name_as_context else self.context)
-              ) for k in keys]
+            [
+                (k, prepare_injector_argument(
+                    self.kwargs.get(k, k if self.name_as_context else self.context),
+                    parameters.get(k, object),
+                    k if self.name_as_context else self.context)
+                 )
+                for k in keys
+            ]
         ))
         setattr(to_inject, INJECT_ARGS, inject_args)
         setattr(to_inject, INJECT_KWARGS, inject_kwargs)
@@ -247,8 +199,8 @@ class Producer(CDIDecorator):
         self.priority = _priority
 
     def __call__(self, producer):
-        annotations = getattr(producer, '__annotations__', {})
-        produce_type = annotations.get('return', self.produce_type or object)
+        type_hints = get_type_hints(producer)
+        produce_type = type_hints.get('return', self.produce_type or object)
         self.container.register_producer(producer, produce_type, self.context, self.priority)
         setattr(producer, INJECT_RETURN, self.produce_type)
         return producer

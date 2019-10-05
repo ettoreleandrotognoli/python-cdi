@@ -1,42 +1,25 @@
-# -*- encoding: utf-8 -*-
-from pycdi.core import DEFAULT_CONTAINER
-from pycdi.shortcuts import new, call
-from pycdi import Producer, Inject
-from pycdi.core import CDIContainer, DEFAULT_CONTAINER, DEFAULT_CONTEXT
-import unittest
-from tests import TestCase
+from __future__ import annotations
 
 from pycdi import Inject
-from pycdi.core import DEFAULT_CONTAINER, DEFAULT_CONTEXT
+from pycdi import Producer
+from pycdi.api import CDIContainer, DEFAULT_CONTEXT
+from pycdi.core import DEFAULT_CONTAINER
 from pycdi.shortcuts import call
-
-
-class NameAsContextTest(TestCase):
-    def test_simple_func(self):
-        @Inject(a=int, b=int, _name_as_context=True)
-        def sub_func(a, b):
-            return a - b
-
-        DEFAULT_CONTAINER.register_instance(4, int, context='a')
-        DEFAULT_CONTAINER.register_instance(2, int, context='b')
-        self.assertEqual(2, call(sub_func))
-
-        DEFAULT_CONTAINER.register_instance(2, int, context='a')
-        DEFAULT_CONTAINER.register_instance(2, int, context='b')
-        self.assertEqual(0, call(sub_func))
-
-        DEFAULT_CONTAINER.register_instance(2, int, context='a')
-        DEFAULT_CONTAINER.register_instance(4, int, context='b')
-        self.assertEqual(-2, call(sub_func))
+from pycdi.shortcuts import new
+from tests import PersistContextTestCase as TestCase
 
 
 class WithForwardReferenceClass(object):
     @Inject(another_me=('WithForwardReferenceClass', DEFAULT_CONTEXT))
-    def kwargs_inject(self, another_me):
+    def legacy_kwargs_inject(self, another_me):
         return another_me
 
     @Inject(('WithForwardReferenceClass', DEFAULT_CONTEXT))
-    def args_inject(self, another_me):
+    def legacy_args_inject(self, another_me):
+        return another_me
+
+    @Inject()
+    def kwargs_inject(self, another_me: WithForwardReferenceClass):
         return another_me
 
 
@@ -45,10 +28,9 @@ class ForwardReferenceTest(TestCase):
         wfrc = WithForwardReferenceClass()
         DEFAULT_CONTAINER.register_instance(wfrc)
         self.assertIs(wfrc, call(wfrc.kwargs_inject))
-        self.assertIs(wfrc, call(wfrc.args_inject))
+        self.assertIs(wfrc, call(wfrc.legacy_kwargs_inject))
+        self.assertIs(wfrc, call(wfrc.legacy_args_inject))
 
-
-# -*- encoding: utf-8 -*-
 
 SOME_STRING = 'some_string'
 ANOTHER_STRING = 'another_string'
@@ -74,7 +56,7 @@ def another_function_with_injection(some_string):
     return some_string
 
 
-class SimpleCDITest(unittest.TestCase):
+class SimpleCDITest(TestCase):
     def test_default_str_producer(self):
         expected = SOME_STRING
         result = new(str)
@@ -116,12 +98,12 @@ def get_subclass_a():
     return SubclassA()
 
 
-@Producer(SubclassB, _context='another')
-def get_subclass_b():
+@Producer(_context='another')
+def get_subclass_b() -> SubclassB:
     return SubclassB()
 
 
-class CDITest(unittest.TestCase):
+class CDITest(TestCase):
     def test_base_class(self):
         with self.assertRaises(NotImplementedError):
             base = BaseClass()
@@ -141,19 +123,19 @@ class CDITest(unittest.TestCase):
 @Inject(some_string=str, a=BaseClass)
 @Inject(another_string=str, b=BaseClass, _context='another')
 class ComplexClass(object):
-    def __init__(self, some_string, another_string, a, b):
+    def __init__(self, some_string: str, another_string: str, a: BaseClass, b: BaseClass):
         self.a = a
         self.b = b
         self.some_string = some_string
         self.another_string = another_string
 
-    @Inject(test=unittest.TestCase)
+    @Inject(test=TestCase)
     def method_with_injection(self, test):
         test.assertEqual(self.some_string, SOME_STRING)
         test.assertEqual(self.another_string, ANOTHER_STRING)
 
 
-class ClassInjectTest(unittest.TestCase):
+class ClassInjectTest(TestCase):
     def test_init_complex_class(self):
         complex_class = new(ComplexClass)
         self.assertIsInstance(complex_class, ComplexClass)
@@ -171,7 +153,7 @@ class ClassInjectTest(unittest.TestCase):
         call(complex_class.method_with_injection)
 
 
-class SelfInjectTest(unittest.TestCase):
+class SelfInjectTest(TestCase):
     def test_simple_function(self):
         @Inject(container=CDIContainer)
         def function(container):
@@ -206,7 +188,7 @@ class SelfInjectTest(unittest.TestCase):
         self.assertIsInstance(obj.cdi, CDIContainer)
 
 
-class InjectArgsTest(unittest.TestCase):
+class InjectArgsTest(TestCase):
     def test_common_args(self):
         DEFAULT_CONTAINER.register_instance(2, int)
         DEFAULT_CONTAINER.register_instance(4.0, float)
@@ -240,7 +222,7 @@ class InjectArgsTest(unittest.TestCase):
         self.assertEqual(10, call(sum_func, 4))
 
 
-class NameAsContextTest(unittest.TestCase):
+class NameAsContextTest(TestCase):
     def test_simple_func(self):
         @Inject(_name_as_context=True)
         def sub_func(a: int, b: int) -> int:
@@ -258,15 +240,19 @@ class NameAsContextTest(unittest.TestCase):
         DEFAULT_CONTAINER.register_instance(4, int, context='b')
         self.assertEqual(-2, call(sub_func))
 
+    def test_simple_legacy_func(self):
+        @Inject(a=int, b=int, _name_as_context=True)
+        def sub_func(a, b):
+            return a - b
 
-class WithForwardReferenceClass(object):
-    @Inject()
-    def kwargs_inject(self, another_me: 'WithForwardReferenceClass'):
-        return another_me
+        DEFAULT_CONTAINER.register_instance(4, int, context='a')
+        DEFAULT_CONTAINER.register_instance(2, int, context='b')
+        self.assertEqual(2, call(sub_func))
 
+        DEFAULT_CONTAINER.register_instance(2, int, context='a')
+        DEFAULT_CONTAINER.register_instance(2, int, context='b')
+        self.assertEqual(0, call(sub_func))
 
-class ForwardReferenceTest(unittest.TestCase):
-    def test_simple_class(self):
-        frc = WithForwardReferenceClass()
-        DEFAULT_CONTAINER.register_instance(frc)
-        self.assertIs(frc, call(frc.kwargs_inject))
+        DEFAULT_CONTAINER.register_instance(2, int, context='a')
+        DEFAULT_CONTAINER.register_instance(4, int, context='b')
+        self.assertEqual(-2, call(sub_func))

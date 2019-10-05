@@ -3,7 +3,8 @@ from tests import TestCase
 from random import random, choice
 
 from pycdi import Producer, Inject
-from pycdi.core import InjectionPoint, PyCDIContainer
+from pycdi.core import PyCDIContainer
+from pycdi.api import InjectionPoint
 
 
 class InjectionPointTest(TestCase):

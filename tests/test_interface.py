@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 from pycdi import Inject
-from pycdi.core import CDIContainer, CDIDecorator
+from pycdi.core import CDIDecorator
+from pycdi.api import CDIContainer
 from pycdi.shortcuts import call
 from tests import TestCase
 

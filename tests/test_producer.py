@@ -4,31 +4,35 @@ from tests import TestCase
 from pycdi import Producer, Inject
 from pycdi.core import DEFAULT_CONTAINER
 
+DEFAULT_CONTAINER.clear()
+
 SOME_STRING = 'some_string'
 
 
-@Producer(str)
-def get_some_string():
-    return SOME_STRING
-
-
 class TestProducer(TestCase):
+
     def test_reference(self):
+
+        @Producer(str)
+        def get_some_string():
+            return SOME_STRING
+
         self.assertIsNotNone(get_some_string)
         self.assertEqual(SOME_STRING, get_some_string())
 
 
-@Producer(int, _priority=None)
-def get_some_int():
-    return 0
-
-
-@Producer(int, _priority=0)
-def get_another_int():
-    return 1
-
-
 class TestMultipleProducer(TestCase):
+
+    def setUp(self):
+        super().setUp()
+        @Producer(int, _priority=None)
+        def get_some_int():
+            return 0
+
+        @Producer(int, _priority=0)
+        def get_another_int():
+            return 1
+
     def test_priority(self):
         self.assertEqual(DEFAULT_CONTAINER.produce(int), 0)
         self.assertEqual(list(DEFAULT_CONTAINER.produce([int])), [0, 1])

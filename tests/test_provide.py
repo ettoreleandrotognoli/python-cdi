@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
-import unittest
+from tests import TestCase
 from pycdi.utils import Provide
-from pycdi.core import CDIContainer
+from pycdi.api import CDIContainer
 from pycdi import Inject
 
 
-class LegacyProvideTest(unittest.TestCase):
+class LegacyProvideTest(TestCase):
     def test_django_view(self):
         expected_request = 'the request'
         expected_pk = 1
@@ -25,7 +25,7 @@ class LegacyProvideTest(unittest.TestCase):
 
 
 
-class ProvideTest(unittest.TestCase):
+class ProvideTest(TestCase):
     def test_django_view(self):
         expected_request = 'the request'
         expected_pk = 1

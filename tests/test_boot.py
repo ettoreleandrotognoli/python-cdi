@@ -1,5 +1,5 @@
 from tests import TestCase
-
+import sys
 import os
 
 from pycdi.shortcuts import new
@@ -9,6 +9,11 @@ DIR = os.path.dirname(__file__)
 
 
 class BootTest(TestCase):
+
+    def tearDown(self):
+        for module in list(filter(lambda it: it.startswith('boot'), sys.modules)):
+            del sys.modules[module]
+
     def test_boot_with_root(self):
         expected = [
             'boot.load_me_cdi',
