@@ -56,6 +56,8 @@ class CDIContainer(object):
 
 
 def resolve_forward_reference(reference_name, scope):
+    if not hasattr(scope, '__globals__' ):
+        scope = scope.__init__
     return eval(reference_name, scope.__globals__, scope.__globals__)
 
 
