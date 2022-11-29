@@ -1,0 +1,23 @@
+on:
+  push:
+    branches:
+      - main
+jobs:
+  pypi-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: sed -i s'/SNAPSHOT/'"$(date +%s)"'/' setup.py
+      - name: Install dependecies
+        uses: VaultVulp/action-pipenv@v2.0.1
+        with:
+          command: install -d
+      - uses: VaultVulp/action-pipenv@v2.0.1
+        with:
+          command: run python setup.py sdist
+      - env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        uses: VaultVulp/action-pipenv@v2.0.1
+        with:
+          command: run twine upload dist/*
