@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 from pycdi import Producer, Inject
 from pycdi.core import DEFAULT_CONTAINER
 from tests import TestCase

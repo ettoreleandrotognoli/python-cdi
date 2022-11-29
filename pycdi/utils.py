@@ -1,10 +1,8 @@
-# -*- encoding: utf-8 -*-
 import glob
 import random
 import sys
 
 import os
-from six import string_types
 
 from .core import CDIDecorator, DEFAULT_CONTAINER
 
@@ -61,7 +59,7 @@ class Provide(CDIDecorator):
 
 def boot_cdi(paths=('*_cdi.py',), root=None):
     root = sys.path if root is None else root
-    if isinstance(root, string_types):
+    if isinstance(root, str):
         root = [root]
     libs = []
     for base_path in root:

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 import unittest
 from pycdi.utils import Provide
 from pycdi.core import CDIContainer
@@ -12,8 +11,8 @@ class ProvideTest(unittest.TestCase):
         expected_response = 'the response'
 
         @Provide()
-        @Inject(container=CDIContainer)
-        def django_view_style(request, pk, container):
+        @Inject()
+        def django_view_style(request, pk, container: CDIContainer):
             self.assertEqual(request, expected_request)
             self.assertEqual(pk, expected_pk)
             self.assertIsNotNone(container)

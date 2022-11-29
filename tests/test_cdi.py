@@ -1,15 +1,14 @@
-# -*- encoding: utf-8 -*-
-from tests import TestCase
+import unittest
 
 from pycdi import Inject
-from pycdi.core import DEFAULT_CONTAINER, DEFAULT_CONTEXT
+from pycdi.core import DEFAULT_CONTAINER
 from pycdi.shortcuts import call
 
 
-class NameAsContextTest(TestCase):
+class NameAsContextTest(unittest.TestCase):
     def test_simple_func(self):
-        @Inject(a=int, b=int, _name_as_context=True)
-        def sub_func(a, b):
+        @Inject(_name_as_context=True)
+        def sub_func(a: int, b: int) -> int:
             return a - b
 
         DEFAULT_CONTAINER.register_instance(4, int, context='a')
@@ -26,18 +25,13 @@ class NameAsContextTest(TestCase):
 
 
 class WithForwardReferenceClass(object):
-    @Inject(another_me=('WithForwardReferenceClass', DEFAULT_CONTEXT))
-    def kwargs_inject(self, another_me):
-        return another_me
-
-    @Inject(('WithForwardReferenceClass', DEFAULT_CONTEXT))
-    def args_inject(self, another_me):
+    @Inject()
+    def kwargs_inject(self, another_me: 'WithForwardReferenceClass'):
         return another_me
 
 
-class ForwardReferenceTest(TestCase):
+class ForwardReferenceTest(unittest.TestCase):
     def test_simple_class(self):
-        wfrc = WithForwardReferenceClass()
-        DEFAULT_CONTAINER.register_instance(wfrc)
-        self.assertIs(wfrc, call(wfrc.kwargs_inject))
-        self.assertIs(wfrc, call(wfrc.args_inject))
+        frc = WithForwardReferenceClass()
+        DEFAULT_CONTAINER.register_instance(frc)
+        self.assertIs(frc, call(frc.kwargs_inject))

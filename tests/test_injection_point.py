@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 from tests import TestCase
 from random import random, choice
 

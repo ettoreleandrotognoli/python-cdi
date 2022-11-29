@@ -1,8 +1,4 @@
-# -*- encoding: utf-8 -*-
-import collections
 import inspect
-
-from six import string_types
 
 DEFAULT_CONTEXT = 'default'
 
@@ -61,7 +57,7 @@ def resolve_forward_reference(reference_name, scope):
 
 def get_di_args(obj):
     di_args = getattr(obj, INJECT_ARGS, [])
-    forward_references = [(index, value) for index, value in enumerate(di_args) if isinstance(value[0], string_types)]
+    forward_references = [(index, value) for index, value in enumerate(di_args) if isinstance(value[0], str)]
     for index, value in forward_references:
         di_args[index] = (resolve_forward_reference(value[0], obj), value[1],)
     return di_args
@@ -72,7 +68,7 @@ def get_di_kwargs(obj):
     forward_references = dict([
         (k, (resolve_forward_reference(v[0], obj), v[1]))
         for k, v in di_kwargs.items()
-        if isinstance(v[0], string_types)
+        if isinstance(v[0], str)
     ])
     di_kwargs.update(forward_references)
     return di_kwargs
@@ -150,9 +146,9 @@ class PyCDIContainer(CDIContainer):
         for instance in args:
             container.register_instance(instance)
         for context, instances in kwargs.items():
-            if isinstance(instances, string_types):
+            if isinstance(instances, str):
                 instances = [instances]
-            if not isinstance(instances, collections.Iterable):
+            if not isinstance(instances, (list, tuple,)):
                 instances = [instances]
             for instance in instances:
                 container.register_instance(instance, context=context)
@@ -211,7 +207,7 @@ class CDIDecorator(object):
 def prepare_injector_argument(arg, default_type, default_context):
     if isinstance(arg, type):
         return arg, default_context
-    elif isinstance(arg, string_types):
+    elif isinstance(arg, str):
         return default_type, arg
     elif isinstance(arg, tuple):
         return arg
